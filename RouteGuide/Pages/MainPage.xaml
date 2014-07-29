@@ -1,0 +1,92 @@
+﻿<phone:PhoneApplicationPage 
+    x:Class="RouteGuide.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:maps="clr-namespace:Microsoft.Phone.Maps.Controls;assembly=Microsoft.Phone.Maps"
+    mc:Ignorable="d"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="{StaticResource PhoneForegroundBrush}"
+    SupportedOrientations="Portrait" Orientation="Portrait"
+    shell:SystemTray.IsVisible="True">
+
+    <!--LayoutRoot представляет корневую сетку, где размещается все содержимое страницы-->
+    <Grid x:Name="LayoutRoot" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="0" x:Name="RootDefinitionTitle"/>
+            <RowDefinition Height="0" x:Name="RotDefinitionContent"/>
+        </Grid.RowDefinitions>
+
+        <!--ContentPanel — здесь находится основное содержимое-->
+        <Grid x:Name="ContentPanel" Grid.Row="0" >
+            <maps:Map x:Name="RouteGuideMap"/>
+            <TextBox x:Name="SearchTextBox"
+                     VerticalAlignment="Top"
+                     Visibility="Collapsed"
+                     HorizontalAlignment="Stretch"
+                     LostFocus="SearchTextBox_LostFocus"/>
+        </Grid>
+
+        <!-- Здесь располагается панель информации о построенном маршруте -->
+        <StackPanel x:Name="RouteDefinitionPanel" Grid.Row="1">
+            
+        </StackPanel>
+        
+        <!-- Здесь располагается панель для кнопок над Application Bar -->
+            <Grid x:Name="OpportunityControlsGrid"
+                  Grid.ColumnSpan="4"
+                  VerticalAlignment="Bottom"
+                  HorizontalAlignment="Stretch"
+                  Height="80"
+                  Margin="0,0,0,2"
+                  Background="Transparent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+            <Button x:Name="CreateRouteButton" Grid.Column="0"
+                    BorderBrush="{StaticResource PhoneBackgroundBrush}" Margin="0,0,20,0">
+                <Image Source="/Assets/Icons/Arrow.png" Margin="-5,-5,-5,-5"/>
+            </Button>
+            <Grid x:Name="ZoomControlsGrid" Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                <Button x:Name="CloserButton" Grid.Column="0" Margin="40,0,-10,0"
+                        BorderBrush="{StaticResource PhoneBackgroundBrush}" 
+                        Click="CloserButton_Click">
+                    <Image Source="/Assets/Icons/Plus.png" Margin="-5,-5,-5,-5"/>
+                </Button>
+                <Button x:Name="FurtherButton" Grid.Column="1" Margin="-10,0,40,0"
+                        BorderBrush="{StaticResource PhoneBackgroundBrush}"
+                        Click="FurtherButton_Click">
+                    <Image Source="/Assets/Icons/Minus.png" Margin="-5,-5,-5,-5"/>
+                </Button>
+
+            </Grid>
+            <Button x:Name="CreatePoiButton" Grid.Column="2"
+                    BorderBrush="{StaticResource PhoneBackgroundBrush}" Margin="20,0,0,0">
+                <Image Source="/Assets/Icons/Map_pin.png" Margin="-5,-5,-5,-5"/>
+            </Button>
+
+        </Grid>
+        
+        <!--Раскомментируйте, чтобы увидеть сетку выравнивания и выровнять
+            элементы управления по общим границам.  Верхнее поле изображения равно -32 пикселя, чтобы
+            осталось место для области уведомлений. Установите его равным 0 (или вообще удалите поле),
+            если область уведомлений скрыта.
+
+            Перед сдачей приложения удалите этот код XAML и само изображение.-->
+        <!--<Image Source="/Assets/AlignmentGrid.png" VerticalAlignment="Top" Height="800" Width="480" Margin="0,-32,0,0" Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" />-->
+    </Grid>
+
+</phone:PhoneApplicationPage>

@@ -1,0 +1,19 @@
+﻿<vm:AuthenticationModel
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:RouteGuide.ViewModels" >
+
+    <vm:AuthenticationModel.Items>
+        <vm:AuthenticationItem Title="facebook"
+                               LogoPath="/Assets/Logos/Facebook_logo.png"
+                               BackgroundColor="#3b579d"/>
+        <vm:AuthenticationItem Title="twitter"
+                               LogoPath="/Assets/Logos/Twitter_logo.png"
+                               BackgroundColor="#00aced"/>
+        <vm:AuthenticationItem Title="ВКонтакте"
+                               LogoPath="/Assets/Logos/VK_logo.png"
+                               BackgroundColor="#155e8b"/>
+    </vm:AuthenticationModel.Items>
+    
+</vm:AuthenticationModel>
+    
