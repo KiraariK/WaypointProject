@@ -142,6 +142,15 @@ namespace RouteGuide.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Не могу определить текущее местоположение. Возможно, эта возможность заблокирована вами..
+        /// </summary>
+        public static string GetMyCurrentLocationError {
+            get {
+                return ResourceManager.GetString("GetMyCurrentLocationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на в избранное.
         /// </summary>
         public static string MainPageAppBarFavoriteText {
@@ -255,6 +264,15 @@ namespace RouteGuide.Resources {
         public static string MainPageMenuTracks {
             get {
                 return ResourceManager.GetString("MainPageMenuTracks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Определение местоположения.
+        /// </summary>
+        public static string ProgressIndicatorCurrentLocationText {
+            get {
+                return ResourceManager.GetString("ProgressIndicatorCurrentLocationText", resourceCulture);
             }
         }
         

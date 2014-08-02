@@ -191,4 +191,10 @@
   <data name="AuthenticationEmptyError" xml:space="preserve">
     <value>Не все необходимые поля заполнены</value>
   </data>
+  <data name="GetMyCurrentLocationError" xml:space="preserve">
+    <value>Не могу определить текущее местоположение. Возможно, эта возможность заблокирована вами.</value>
+  </data>
+  <data name="ProgressIndicatorCurrentLocationText" xml:space="preserve">
+    <value>Определение местоположения</value>
+  </data>
 </root>

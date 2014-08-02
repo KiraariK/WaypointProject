@@ -10,6 +10,12 @@ using Microsoft.Phone.Shell;
 using System.Device.Location;
 using Microsoft.Phone.Maps.Controls;
 using RouteGuide.Resources;
+using Windows.Devices.Geolocation;
+
+using RouteGuide.Classes;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.Windows.Media;
 
 namespace RouteGuide
 {
@@ -20,9 +26,28 @@ namespace RouteGuide
         {
             InitializeComponent();
 
+            Loaded += MainPage_Loaded;
+
             BuildLocalizedApplicationBar();
         }
 
+        void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            SystemTray.ProgressIndicator = new ProgressIndicator();
+
+            GetMyCurrentLocation();
+        }
+
+        // Текущее местоположение пользователя
+        private GeoCoordinate myCoordinate = null;
+
+        // Точность определения местположения пользователя в метрах
+        private double myLocationAccuracy = double.NaN;
+
+        /*
+         * функция создания нового экземпляра основного объекта Application Bar.
+         * функция полностью заполняет основной Application Bar (определяет кнопки и пункты меню).
+         */
         private void BuildLocalizedApplicationBar()
         {
             ApplicationBar = new ApplicationBar();
@@ -86,6 +111,142 @@ namespace RouteGuide
             ApplicationBar.MenuItems.Add(appBarMenuAbout);
         }
 
+        /*
+         * функция асинхронного определения текущего местоположения,
+         * фокусировка карты на текущем местоположении,
+         * установка метки текущего местоположения на карте.
+         */
+        private async void GetMyCurrentLocation()
+        {
+            SetProgressIndicatiorVisibility(true, AppResources.ProgressIndicatorCurrentLocationText);
+            Geolocator geolocator = new Geolocator();
+            geolocator.DesiredAccuracy = PositionAccuracy.High;
+
+            try
+            {
+                Geoposition myPosition = await geolocator.GetGeopositionAsync(TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(20));
+                myLocationAccuracy = myPosition.Coordinate.Accuracy;
+
+                myCoordinate = new GeoCoordinate(myPosition.Coordinate.Latitude, myPosition.Coordinate.Longitude);
+                DrawMapMarkers();
+                RouteGuideMap.SetView(myCoordinate, 16, MapAnimationKind.Parabolic);
+                
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(AppResources.GetMyCurrentLocationError);
+            }
+
+            SetProgressIndicatiorVisibility(false);
+        }
+
+        /*
+         * функция отрисовывает метки на карте, создавая слой для их отрисовки на карте.
+         * Старый слой удаляется.
+         */
+        private void DrawMapMarkers(double radius = double.NaN)
+        {
+            // TODO: разделить отрисовку различных маркеров на карте
+            RouteGuideMap.Layers.Clear();
+            MapLayer mapLayer = new MapLayer();
+
+            // отрисовка маркеров особых мест
+            // TODO:
+
+            // отрисовка маркера для местоположения пользователя
+            if (myCoordinate != null)
+            {
+                DrawMyLocationAccuracyRadius(mapLayer);
+                DrawMapMarker(myCoordinate, MarkerKind.Me, mapLayer);
+            }
+
+            // Отрисовкамаркера поиска
+            // TODO:
+
+            // Отрисовка всех POI в установленном радиусе
+            // TODO:
+
+            RouteGuideMap.Layers.Add(mapLayer);
+        }
+
+        /*
+         * функция загружает нужную иконку маркера,
+         * создает объект маркера и добавляет его на слой карты.
+         */
+        private void DrawMapMarker(GeoCoordinate coordinate, MarkerKind markerKind, MapLayer mapLayer)
+        {
+            // создание маркера
+            Image marker = new Image();
+            BitmapImage markerIcon = new BitmapImage(new Uri(MarkerStore.GetMarkerPath(markerKind), UriKind.RelativeOrAbsolute));
+            marker.Source = markerIcon;
+
+            // позволяем взаимодействие с маркером
+            marker.Tag = new GeoCoordinate(coordinate.Latitude, coordinate.Longitude); //!!! записываем конкретную нужную информацию о маркере
+            marker.Tap += marker_Tap;
+
+            // создание объекта маркера на слое карты
+            MapOverlay overlay = new MapOverlay();
+            overlay.Content = marker;
+            overlay.GeoCoordinate = new GeoCoordinate(coordinate.Latitude, coordinate.Longitude);
+            overlay.PositionOrigin = new Point(0.0D, 1.0D);
+            mapLayer.Add(overlay);
+        }
+
+        void marker_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            Image marker = sender as Image;
+
+            if (marker == null)
+                return;
+
+            GeoCoordinate coordinate = marker.Tag as GeoCoordinate;
+
+            if (coordinate == null)
+                return;
+
+            MessageBox.Show(string.Format("{0} -{1}", coordinate.Latitude.ToString(), coordinate.Longitude.ToString()));
+        }
+
+        /*
+         * фунцкция отрисовывает радиус точности опредления текущего местположения пользователя
+         * на слое карты
+         */
+        private void DrawMyLocationAccuracyRadius(MapLayer mapLayer)
+        {
+            /* метод вычислений взят чисто из примера от Nokia для Windows Phone 8 Map API */
+            // The ground resolution (in meters per pixel) varies depending on the level of detail 
+            // and the latitude at which it’s measured. It can be calculated as follows:
+            double metersPerPixels = (Math.Cos(myCoordinate.Latitude * Math.PI / 180) * 2 * Math.PI * 6378137) / (256 * Math.Pow(2, RouteGuideMap.ZoomLevel));
+            double radius = myLocationAccuracy / metersPerPixels;
+
+            Ellipse locationArea = new Ellipse();
+            locationArea.Width = radius * 2;
+            locationArea.Height = radius * 2;
+            locationArea.Fill = new SolidColorBrush(Color.FromArgb(75, 68, 224, 163));
+
+            MapOverlay overlay = new MapOverlay();
+            overlay.Content = locationArea;
+            overlay.GeoCoordinate = new GeoCoordinate(myCoordinate.Latitude, myCoordinate.Longitude);
+            overlay.PositionOrigin = new Point(0.5, 0.5);
+            mapLayer.Add(overlay);
+        }
+
+        /*
+         * функция устанавливает видимость полосы загрузки с поясняющим текстом в трее телефона.
+         */
+        private void SetProgressIndicatiorVisibility(bool IsVisible, string Text = "")
+        {
+            SystemTray.ProgressIndicator.IsIndeterminate = IsVisible;
+            SystemTray.ProgressIndicator.IsVisible = IsVisible;
+
+            if (!Text.Equals(""))
+                SystemTray.ProgressIndicator.Text = Text;
+        }
+
+        /*
+         * функция устанавливает видимость элементов кправления на экране при использовании кнопки поиска
+         * на основном Application Bar.
+         */
         private void SetSearchTextBoxVisibility(bool isVisible)
         {
             if (isVisible)
@@ -111,7 +272,10 @@ namespace RouteGuide
                 if (RouteGuideMap.ZoomLevel > 14) // Близко к земле - приближаем помедленее
                 {
                     double newZoomLevel = RouteGuideMap.ZoomLevel + 1;
-                    RouteGuideMap.SetView(RouteGuideMap.Center, newZoomLevel, MapAnimationKind.Linear);
+                    if (newZoomLevel <= 20)
+                        RouteGuideMap.SetView(RouteGuideMap.Center, newZoomLevel, MapAnimationKind.Linear);
+                    else
+                        RouteGuideMap.SetView(RouteGuideMap.Center, 20, MapAnimationKind.Linear);
                 }
                 else // Далеко от земли - приближем побыстрее
                 {
@@ -128,7 +292,10 @@ namespace RouteGuide
                 if (RouteGuideMap.ZoomLevel <= 14) // Далеко от земли - отдаляем побыстрее
                 {
                     double newZoomLevel = RouteGuideMap.ZoomLevel - 1.5;
-                    RouteGuideMap.SetView(RouteGuideMap.Center, newZoomLevel, MapAnimationKind.Linear);
+                    if (newZoomLevel >= 1)
+                        RouteGuideMap.SetView(RouteGuideMap.Center, newZoomLevel, MapAnimationKind.Linear);
+                    else
+                        RouteGuideMap.SetView(RouteGuideMap.Center, 1, MapAnimationKind.Linear);
                 }
                 else // Близко к земле - отдаляем помедленее
                 {
