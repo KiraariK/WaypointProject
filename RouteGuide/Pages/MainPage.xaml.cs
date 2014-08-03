@@ -33,7 +33,8 @@ namespace RouteGuide
 
         void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            SystemTray.ProgressIndicator = new ProgressIndicator();
+            if (SystemTray.ProgressIndicator == null)
+                SystemTray.ProgressIndicator = new ProgressIndicator();
 
             GetMyCurrentLocation();
         }
@@ -113,7 +114,7 @@ namespace RouteGuide
 
         /*
          * функция асинхронного определения текущего местоположения,
-         * фокусировка карты на текущем местоположении,
+         * фокусировка карты на текущем местоположении c определенным уровнем приближения,
          * установка метки текущего местоположения на карте.
          */
         private async void GetMyCurrentLocation()
@@ -130,7 +131,6 @@ namespace RouteGuide
                 myCoordinate = new GeoCoordinate(myPosition.Coordinate.Latitude, myPosition.Coordinate.Longitude);
                 DrawMapMarkers();
                 RouteGuideMap.SetView(myCoordinate, 16, MapAnimationKind.Parabolic);
-                
             }
             catch (Exception)
             {
@@ -141,12 +141,10 @@ namespace RouteGuide
         }
 
         /*
-         * функция отрисовывает метки на карте, создавая слой для их отрисовки на карте.
-         * Старый слой удаляется.
+         * Функция для отрисовки маркеров на карте.
          */
-        private void DrawMapMarkers(double radius = double.NaN)
+        private void DrawMapMarkers()
         {
-            // TODO: разделить отрисовку различных маркеров на карте
             RouteGuideMap.Layers.Clear();
             MapLayer mapLayer = new MapLayer();
 
@@ -156,8 +154,8 @@ namespace RouteGuide
             // отрисовка маркера для местоположения пользователя
             if (myCoordinate != null)
             {
-                DrawMyLocationAccuracyRadius(mapLayer);
                 DrawMapMarker(myCoordinate, MarkerKind.Me, mapLayer);
+                DrawMyLocationAccuracyRadius(mapLayer);
             }
 
             // Отрисовкамаркера поиска
@@ -188,7 +186,7 @@ namespace RouteGuide
             MapOverlay overlay = new MapOverlay();
             overlay.Content = marker;
             overlay.GeoCoordinate = new GeoCoordinate(coordinate.Latitude, coordinate.Longitude);
-            overlay.PositionOrigin = new Point(0.0D, 1.0D);
+            overlay.PositionOrigin = new Point(0.5, 1.0);
             mapLayer.Add(overlay);
         }
 
@@ -204,12 +202,12 @@ namespace RouteGuide
             if (coordinate == null)
                 return;
 
-            MessageBox.Show(string.Format("{0} -{1}", coordinate.Latitude.ToString(), coordinate.Longitude.ToString()));
+            MessageBox.Show(string.Format("{0} - {1}", coordinate.Latitude.ToString(), coordinate.Longitude.ToString()));
         }
 
         /*
-         * фунцкция отрисовывает радиус точности опредления текущего местположения пользователя
-         * на слое карты
+         * Фунцкция отрисовывает радиус точности опредления текущего местположения пользователя
+         * на слое карты.
          */
         private void DrawMyLocationAccuracyRadius(MapLayer mapLayer)
         {
@@ -222,7 +220,8 @@ namespace RouteGuide
             Ellipse locationArea = new Ellipse();
             locationArea.Width = radius * 2;
             locationArea.Height = radius * 2;
-            locationArea.Fill = new SolidColorBrush(Color.FromArgb(75, 68, 224, 163));
+            Color circleColor = ((Color)Application.Current.Resources["PhoneAccentColor"]);
+            locationArea.Fill = new SolidColorBrush(Color.FromArgb(60, circleColor.R, circleColor.G, circleColor.B));
 
             MapOverlay overlay = new MapOverlay();
             overlay.Content = locationArea;
