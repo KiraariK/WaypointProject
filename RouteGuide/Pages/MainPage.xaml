@@ -24,7 +24,8 @@
 
         <!--ContentPanel — здесь находится основное содержимое-->
         <Grid x:Name="ContentPanel" Grid.Row="0" >
-            <maps:Map x:Name="RouteGuideMap"/>
+            <maps:Map x:Name="RouteGuideMap"
+                      ZoomLevelChanged="RouteGuideMap_ZoomLevelChanged"/>
             <TextBox x:Name="SearchTextBox"
                      VerticalAlignment="Top"
                      Visibility="Collapsed"

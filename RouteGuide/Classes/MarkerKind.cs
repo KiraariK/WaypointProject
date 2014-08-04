@@ -27,42 +27,48 @@ namespace RouteGuide.Classes
         Search = 4,
 
         // место оправления (для матршрутов)
-        Source = 5,
+        Location = 5,
 
         // место назначения (для маршрутов)
         Destination = 6,
 
+        // промежуточная точка (для маршрутов)
+        Waypoint = 7,
+
         // ремонтные работы
-        Repair = 7,
+        Repair = 8,
 
         // дорожное перекрытие
-        StopAuto = 8,
+        StopAuto = 9,
 
         // пешеходное перекрытие
-        StopWalk = 9,
+        StopWalk = 10,
 
         // менты
-        Police = 10,
+        Police = 11,
 
         // дорожная камера
-        Camera = 11,
+        Camera = 12,
 
         // авария ДТП
-        Crash = 12,
+        Crash = 13,
 
         // плохая дорога
-        BadRoad = 13,
+        BadRoad = 14,
 
         // большая лужа
-        Pool = 14,
+        Pool = 15,
 
         // лед
-        Ice = 15,
+        Ice = 16,
+
+        // чат
+        Chat = 17,
 
         // ошибка на карте
-        Mistake = 16,
+        Mistake = 18,
 
         // Пользовательская метка
-        Custom = 17
+        Custom = 19
     }
 }

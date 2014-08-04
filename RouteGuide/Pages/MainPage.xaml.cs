@@ -21,6 +21,28 @@ namespace RouteGuide
 {
     public partial class MainPage : PhoneApplicationPage
     {
+        /*
+         * Замечание - все объекта на слое карты наносятся поверх других объектов (в порядке их добавление на слой карты)
+         * Возможно, стоит пересмотреть порядок слоев карты в будущем.
+         */
+
+        // Текущее местоположение пользователя (слой карты = 0)
+        private MyLocationMarker myMapMarker = null;
+
+        // Список маркеров POI (слой карты = 1)
+        private List<POIMarker> poiMapMarkers = null;
+        // Радиус от пользователя в котором нужно загрузить POI
+        private const double poiRadius = 1000.0;
+
+        // Список особых меток на карте (слой карты = 2)
+        private List<Marker> specialMapMarker = null;
+
+        // Список маркеров поиска (слой карты = 3)
+        private List<SearchMarker> searchMapMarker = null;
+
+        // Список маркеров промежуточных точек маршрутов (слой карты = 4)
+        private List<Marker> waypointMapMarkers = null;
+
         // Конструктор
         public MainPage()
         {
@@ -28,7 +50,7 @@ namespace RouteGuide
 
             Loaded += MainPage_Loaded;
 
-            BuildLocalizedApplicationBar();
+            CreateMainApplicationBar();
         }
 
         void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -36,20 +58,14 @@ namespace RouteGuide
             if (SystemTray.ProgressIndicator == null)
                 SystemTray.ProgressIndicator = new ProgressIndicator();
 
-            GetMyCurrentLocation();
+            LoadMapMarkers();
         }
-
-        // Текущее местоположение пользователя
-        private GeoCoordinate myCoordinate = null;
-
-        // Точность определения местположения пользователя в метрах
-        private double myLocationAccuracy = double.NaN;
 
         /*
          * функция создания нового экземпляра основного объекта Application Bar.
          * функция полностью заполняет основной Application Bar (определяет кнопки и пункты меню).
          */
-        private void BuildLocalizedApplicationBar()
+        private void CreateMainApplicationBar()
         {
             ApplicationBar = new ApplicationBar();
 
@@ -113,24 +129,57 @@ namespace RouteGuide
         }
 
         /*
+         * Функция создает слои для отрисовки маркеров на карте,
+         * загружает маркеры:
+         * текущее положение пользователя + фокусировка с масштабированием на нем,
+         * особые маркеры, установленные пользователем в настройках приложения,
+         * маркеры POI, информация о которых грузится с сервера
+         */
+        private async void LoadMapMarkers()
+        {
+            RouteGuideMap.Layers.Clear();
+
+            MapLayer meMapLayer = new MapLayer();
+            GetMyCurrentStartPosition(meMapLayer);
+            RouteGuideMap.Layers.Add(meMapLayer);
+
+            MapLayer poiMapLayer = new MapLayer();
+            // получить данные о POI, записть в слой карты
+            RouteGuideMap.Layers.Add(poiMapLayer);
+
+            MapLayer specialMapLayer = new MapLayer();
+            // получить данные о специальных маркерах, записать в слой карты
+            RouteGuideMap.Layers.Add(specialMapLayer);
+
+            MapLayer searchMapLayer = new MapLayer();
+            RouteGuideMap.Layers.Add(searchMapLayer);
+
+            MapLayer waypointMapLayer = new MapLayer();
+            RouteGuideMap.Layers.Add(waypointMapLayer);
+        }
+
+        /*
          * функция асинхронного определения текущего местоположения,
          * фокусировка карты на текущем местоположении c определенным уровнем приближения,
-         * установка метки текущего местоположения на карте.
+         * установка метки текущего местоположения на карте. (вызывается при загрузке карты)
          */
-        private async void GetMyCurrentLocation()
+        private async void GetMyCurrentStartPosition(MapLayer mapLayer)
         {
             SetProgressIndicatiorVisibility(true, AppResources.ProgressIndicatorCurrentLocationText);
             Geolocator geolocator = new Geolocator();
             geolocator.DesiredAccuracy = PositionAccuracy.High;
 
+            myMapMarker = MyLocationMarker.Instance();
+            myMapMarker.Kind = MarkerKind.Me;
+
             try
             {
                 Geoposition myPosition = await geolocator.GetGeopositionAsync(TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(20));
-                myLocationAccuracy = myPosition.Coordinate.Accuracy;
+                myMapMarker.Accuracy = myPosition.Coordinate.Accuracy;
 
-                myCoordinate = new GeoCoordinate(myPosition.Coordinate.Latitude, myPosition.Coordinate.Longitude);
-                DrawMapMarkers();
-                RouteGuideMap.SetView(myCoordinate, 16, MapAnimationKind.Parabolic);
+                myMapMarker.Coordinate = new GeoCoordinate(myPosition.Coordinate.Latitude, myPosition.Coordinate.Longitude);
+                RouteGuideMap.SetView(myMapMarker.Coordinate, 16, MapAnimationKind.Parabolic);
+                DrawMyPositionMarker(mapLayer);
             }
             catch (Exception)
             {
@@ -141,30 +190,112 @@ namespace RouteGuide
         }
 
         /*
-         * Функция для отрисовки маркеров на карте.
+         * функция асинхронного обновления текущего местоположения пользователя,
+         * перерисовывает точку текущего местоположения и фокусируется на ней, без изменения масштаба
          */
-        private void DrawMapMarkers()
+        private async void UpdateMyCurrentPosition(MapLayer mapLayer)
         {
-            RouteGuideMap.Layers.Clear();
-            MapLayer mapLayer = new MapLayer();
+            SetProgressIndicatiorVisibility(true, AppResources.ProgressIndicatorCurrentLocationText);
+            Geolocator geolocator = new Geolocator();
+            geolocator.DesiredAccuracy = PositionAccuracy.High;
 
-            // отрисовка маркеров особых мест
-            // TODO:
+            myMapMarker = MyLocationMarker.Instance();
+            myMapMarker.Kind = MarkerKind.Me;
 
-            // отрисовка маркера для местоположения пользователя
-            if (myCoordinate != null)
+            try
             {
-                DrawMapMarker(myCoordinate, MarkerKind.Me, mapLayer);
-                DrawMyLocationAccuracyRadius(mapLayer);
+                                                                                // устаревание инфы     // таймаут определения местоположения
+                Geoposition myPosition = await geolocator.GetGeopositionAsync(TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(20));
+                myMapMarker.Accuracy = myPosition.Coordinate.Accuracy;
+
+                myMapMarker.Coordinate = new GeoCoordinate(myPosition.Coordinate.Latitude, myPosition.Coordinate.Longitude);
+                RouteGuideMap.SetView(myMapMarker.Coordinate, RouteGuideMap.ZoomLevel, MapAnimationKind.Parabolic);
+                DrawMyPositionMarker(mapLayer);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(AppResources.GetMyCurrentLocationError);
             }
 
-            // Отрисовкамаркера поиска
-            // TODO:
+            SetProgressIndicatiorVisibility(false);
+        }
 
-            // Отрисовка всех POI в установленном радиусе
-            // TODO:
+        /*
+         * функция отрисовки маркера текущей позиции пользователя на соответствующем слое карты + 
+         * отрисовка окружности погрешности определения текущей позиции пользователя
+         */
+        private void DrawMyPositionMarker(MapLayer mapLayer)
+        {
+            if (myMapMarker != null)
+            {
+                mapLayer.Clear();
 
-            RouteGuideMap.Layers.Add(mapLayer);
+                DrawMyLocationAccuracyRadius(mapLayer);
+                DrawMapMarker(myMapMarker.Coordinate, myMapMarker.Kind, mapLayer);
+            }
+        }
+
+        /*
+         * Фунцкция отрисовывает радиус точности опредления текущего местположения пользователя
+         * на слое карты.
+         */
+        private void DrawMyLocationAccuracyRadius(MapLayer mapLayer)
+        {
+            /* метод вычислений взят чисто из примера от Nokia для Windows Phone 8 Map API */
+            // The ground resolution (in meters per pixel) varies depending on the level of detail 
+            // and the latitude at which it’s measured. It can be calculated as follows:
+            double metersPerPixels = (Math.Cos(myMapMarker.Coordinate.Latitude * Math.PI / 180) * 2 * Math.PI * 6378137) / (256 * Math.Pow(2, RouteGuideMap.ZoomLevel));
+            double radius = myMapMarker.Accuracy / metersPerPixels;
+
+            Ellipse locationArea = new Ellipse();
+            locationArea.Width = radius * 2;
+            locationArea.Height = radius * 2;
+            Color circleColor = ((Color)Application.Current.Resources["PhoneAccentColor"]);
+            locationArea.Fill = new SolidColorBrush(Color.FromArgb(60, circleColor.R, circleColor.G, circleColor.B));
+
+            MapOverlay overlay = new MapOverlay();
+            overlay.Content = locationArea;
+            overlay.GeoCoordinate = myMapMarker.Coordinate;
+            overlay.PositionOrigin = new Point(0.5, 0.5);
+            mapLayer.Add(overlay);
+        }
+
+        /*
+         * функция обновления радиуса точности определения текущего местположения пользователя
+         */
+        private void UpdateLocationAccuracyRadius(MapOverlay overlay)
+        {
+            /* метод вычислений взят чисто из примера от Nokia для Windows Phone 8 Map API */
+            // The ground resolution (in meters per pixel) varies depending on the level of detail 
+            // and the latitude at which it’s measured. It can be calculated as follows:
+            double metersPerPixels = (Math.Cos(myMapMarker.Coordinate.Latitude * Math.PI / 180) * 2 * Math.PI * 6378137) / (256 * Math.Pow(2, RouteGuideMap.ZoomLevel));
+            double radius = myMapMarker.Accuracy / metersPerPixels;
+
+            Ellipse locationArea = new Ellipse();
+            locationArea.Width = radius * 2;
+            locationArea.Height = radius * 2;
+            Color circleColor = ((Color)Application.Current.Resources["PhoneAccentColor"]);
+            locationArea.Fill = new SolidColorBrush(Color.FromArgb(60, circleColor.R, circleColor.G, circleColor.B));
+
+            overlay.Content = locationArea;
+            overlay.GeoCoordinate = myMapMarker.Coordinate;
+            overlay.PositionOrigin = new Point(0.5, 0.5);
+        }
+
+        /*
+         * Функция для загрузки с сервера данных о POI и отображения их на слое карты
+         */
+        private async void LoadPoiMarkers(MapLayer mapLayer)
+        {
+            // отрисовывание с помощью DrawMapMarker()
+        }
+
+        /*
+         * Функция для загрузки особых маркеров из памяти и отображения их на слое карты
+         */
+        private async void LoadSpecialMarkers(MapLayer mapLayer)
+        {
+            // отрисовывание с помощью DrawMapMarker()
         }
 
         /*
@@ -175,11 +306,36 @@ namespace RouteGuide
         {
             // создание маркера
             Image marker = new Image();
-            BitmapImage markerIcon = new BitmapImage(new Uri(MarkerStore.GetMarkerPath(markerKind), UriKind.RelativeOrAbsolute));
+            BitmapImage markerIcon = new BitmapImage(new Uri(MarkerIconStore.GetMarkerPath(markerKind), UriKind.RelativeOrAbsolute));
             marker.Source = markerIcon;
 
             // позволяем взаимодействие с маркером
-            marker.Tag = new GeoCoordinate(coordinate.Latitude, coordinate.Longitude); //!!! записываем конкретную нужную информацию о маркере
+            switch (markerKind)
+            {
+                case MarkerKind.Me:
+                    //marker.Tag = new GeoCoordinate(myMapMarker.Coordinate.Latitude, myMapMarker.Coordinate.Longitude);
+                    marker.Tag = "Я здесь";
+                    break;
+                case MarkerKind.Home:
+                    marker.Tag = "Мой дом";
+                    break;
+                case MarkerKind.Work:
+                    marker.Tag = "Моя работа";
+                    break;
+                case MarkerKind.Search:
+                    // запихиваем структуру для маркера поиска
+                    break;
+                case MarkerKind.Location:
+                    break;
+                case MarkerKind.Destination:
+                    break;
+                case MarkerKind.Waypoint:
+                    break;
+                default:
+                    // загружаем структуру для макера POI
+                    break;
+
+            }
             marker.Tap += marker_Tap;
 
             // создание объекта маркера на слое карты
@@ -197,37 +353,21 @@ namespace RouteGuide
             if (marker == null)
                 return;
 
-            GeoCoordinate coordinate = marker.Tag as GeoCoordinate;
+            string message = marker.Tag as string;
 
-            if (coordinate == null)
+            if (message == null)
+            {
+                GeoCoordinate coordinate = marker.Tag as GeoCoordinate;
+
+                if (coordinate == null)
+                    return;
+
+                MessageBox.Show(string.Format("{0} - {1}", coordinate.Latitude.ToString(), coordinate.Longitude.ToString()));
+
                 return;
+            }
 
-            MessageBox.Show(string.Format("{0} - {1}", coordinate.Latitude.ToString(), coordinate.Longitude.ToString()));
-        }
-
-        /*
-         * Фунцкция отрисовывает радиус точности опредления текущего местположения пользователя
-         * на слое карты.
-         */
-        private void DrawMyLocationAccuracyRadius(MapLayer mapLayer)
-        {
-            /* метод вычислений взят чисто из примера от Nokia для Windows Phone 8 Map API */
-            // The ground resolution (in meters per pixel) varies depending on the level of detail 
-            // and the latitude at which it’s measured. It can be calculated as follows:
-            double metersPerPixels = (Math.Cos(myCoordinate.Latitude * Math.PI / 180) * 2 * Math.PI * 6378137) / (256 * Math.Pow(2, RouteGuideMap.ZoomLevel));
-            double radius = myLocationAccuracy / metersPerPixels;
-
-            Ellipse locationArea = new Ellipse();
-            locationArea.Width = radius * 2;
-            locationArea.Height = radius * 2;
-            Color circleColor = ((Color)Application.Current.Resources["PhoneAccentColor"]);
-            locationArea.Fill = new SolidColorBrush(Color.FromArgb(60, circleColor.R, circleColor.G, circleColor.B));
-
-            MapOverlay overlay = new MapOverlay();
-            overlay.Content = locationArea;
-            overlay.GeoCoordinate = new GeoCoordinate(myCoordinate.Latitude, myCoordinate.Longitude);
-            overlay.PositionOrigin = new Point(0.5, 0.5);
-            mapLayer.Add(overlay);
+            MessageBox.Show(message);
         }
 
         /*
@@ -304,6 +444,9 @@ namespace RouteGuide
             }
         }
 
+        /*
+         * События нажатия кнопок в Application Bar
+         */
         void appBarSearchButton_Click(object sender, EventArgs e)
         {
             SetSearchTextBoxVisibility(true);
@@ -311,7 +454,8 @@ namespace RouteGuide
 
         void appBarLocationButton_Click(object sender, EventArgs e)
         {
-
+            // определяем текущую позицию и перерисовываем её на соответствущем слое карты
+            UpdateMyCurrentPosition(RouteGuideMap.Layers[0]);
         }
 
         void appBarFavoriteButton_Click(object sender, EventArgs e)
@@ -325,7 +469,9 @@ namespace RouteGuide
         }
 
 
-
+        /*
+         * События выбора одного из пунктов меню в Application Bar
+         */
         void appBarMenuAccount_Click(object sender, EventArgs e)
         {
 
@@ -374,6 +520,22 @@ namespace RouteGuide
         private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             SetSearchTextBoxVisibility(false);
+        }
+
+        /*
+         * События карты
+         */
+        private void RouteGuideMap_ZoomLevelChanged(object sender, MapZoomLevelChangedEventArgs e)
+        {
+            // перерисовываем изображение окружности погрешности определения местоположения пользователя
+            foreach (MapOverlay overlay in RouteGuideMap.Layers[0])
+            {
+                Ellipse accuracyEllipce = overlay.Content as Ellipse;
+                if (accuracyEllipce != null)
+                {
+                    UpdateLocationAccuracyRadius(overlay);
+                }
+            }
         }
     }
 }

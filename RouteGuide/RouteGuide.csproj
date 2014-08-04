@@ -93,8 +93,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Classes\MarekrStore.cs" />
+    <Compile Include="Classes\MarkerIconStore.cs" />
+    <Compile Include="Classes\Marker.cs" />
     <Compile Include="Classes\MarkerKind.cs" />
+    <Compile Include="Classes\MyLocationMarker.cs" />
+    <Compile Include="Classes\POIMarker.cs" />
+    <Compile Include="Classes\SearchMarker.cs" />
     <Compile Include="LocalizedStrings.cs" />
     <Compile Include="Pages\AuthenticationPage.xaml.cs">
       <DependentUpon>AuthenticationPage.xaml</DependentUpon>
@@ -154,7 +158,7 @@
     <Content Include="Assets\Logos\Facebook_logo.png" />
     <Content Include="Assets\Logos\Twitter_logo.png" />
     <Content Include="Assets\Logos\VK_logo.png" />
-    <Content Include="Assets\POI\Me.png" />
+    <Content Include="Assets\Markers\Me.png" />
     <Content Include="Assets\Tiles\FlipCycleTileLarge.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
