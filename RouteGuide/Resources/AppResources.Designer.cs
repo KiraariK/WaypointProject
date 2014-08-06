@@ -268,6 +268,105 @@ namespace RouteGuide.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на В этом месте стоит дорожный патруль.
+        /// </summary>
+        public static string PoiPoliceDescription {
+            get {
+                return ResourceManager.GetString("PoiPoliceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Менты.
+        /// </summary>
+        public static string PoiPoliceName {
+            get {
+                return ResourceManager.GetString("PoiPoliceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Комментарий:.
+        /// </summary>
+        public static string PoiSettingsComment {
+            get {
+                return ResourceManager.GetString("PoiSettingsComment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Отмеченное на карте.
+        /// </summary>
+        public static string PoiSettingsMarkerSearchLocation {
+            get {
+                return ResourceManager.GetString("PoiSettingsMarkerSearchLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Мое местоположение.
+        /// </summary>
+        public static string PoiSettingsMyLocation {
+            get {
+                return ResourceManager.GetString("PoiSettingsMyLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Указать место.
+        /// </summary>
+        public static string PoiSettingsSearchLocation {
+            get {
+                return ResourceManager.GetString("PoiSettingsSearchLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Поставить метку.
+        /// </summary>
+        public static string PoiSettingsTitle {
+            get {
+                return ResourceManager.GetString("PoiSettingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на В этом месте перекрыты автомобильные дорроги.
+        /// </summary>
+        public static string PoiStopAutoDescription {
+            get {
+                return ResourceManager.GetString("PoiStopAutoDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Проезда нет.
+        /// </summary>
+        public static string PoiStopAutoName {
+            get {
+                return ResourceManager.GetString("PoiStopAutoName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на В этом месте перекрыты пешеходные дороги.
+        /// </summary>
+        public static string PoiStopWalkDescription {
+            get {
+                return ResourceManager.GetString("PoiStopWalkDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Не пройти.
+        /// </summary>
+        public static string PoiStopWalkName {
+            get {
+                return ResourceManager.GetString("PoiStopWalkName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Определение местоположения.
         /// </summary>
         public static string ProgressIndicatorCurrentLocationText {

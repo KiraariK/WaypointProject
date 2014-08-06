@@ -31,7 +31,7 @@ namespace RouteGuide
 
         // Список маркеров POI (слой карты = 1)
         private List<POIMarker> poiMapMarkers = null;
-        // Радиус от пользователя в котором нужно загрузить POI
+        // Радиус от пользователя в котором нужно загрузить POI (метры)
         private const double poiRadius = 1000.0;
 
         // Список особых меток на карте (слой карты = 2)
@@ -306,7 +306,7 @@ namespace RouteGuide
         {
             // создание маркера
             Image marker = new Image();
-            BitmapImage markerIcon = new BitmapImage(new Uri(MarkerIconStore.GetMarkerPath(markerKind), UriKind.RelativeOrAbsolute));
+            BitmapImage markerIcon = new BitmapImage(new Uri(MarkerStore.GetMarkerPath(markerKind), UriKind.RelativeOrAbsolute));
             marker.Source = markerIcon;
 
             // позволяем взаимодействие с маркером
@@ -404,6 +404,14 @@ namespace RouteGuide
             }
         }
 
+        /*
+         * События кнопок, расположенных над Application Bar
+         */
+        private void CreateRouteButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private void CloserButton_Click(object sender, RoutedEventArgs e)
         {
             if (RouteGuideMap.ZoomLevel != 20) // Самый крупный масштаб
@@ -442,6 +450,13 @@ namespace RouteGuide
                     RouteGuideMap.SetView(RouteGuideMap.Center, newZoomLevel,  MapAnimationKind.Linear);
                 }
             }
+        }
+
+        private void CreatePoiButton_Click(object sender, RoutedEventArgs e)
+        {
+            // подготовка данных для передачи на страницу настроек POI
+
+            NavigationService.Navigate(new Uri("/Pages/PoiSettingsPage.xaml", UriKind.RelativeOrAbsolute));
         }
 
         /*
@@ -535,6 +550,79 @@ namespace RouteGuide
                 {
                     UpdateLocationAccuracyRadius(overlay);
                 }
+            }
+        }
+
+        /*
+         * События страницы
+         */
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            // обрабатываем передачу данных со страницы добавления POI
+            if (PhoneApplicationService.Current.State.ContainsKey("type"))
+            {
+                // предыдущая страница передала данные
+                string type = PhoneApplicationService.Current.State["type"] as string;
+
+                if (type == null)
+                    return;
+
+                if (type.Equals("PoiSettings"))
+                {
+                    // данные передала страница натроек POI
+                    POIMarker newPoiMarker = new POIMarker();
+
+                    string location = PhoneApplicationService.Current.State["location"] as string;
+
+                    if (location == null)
+                        return;
+
+                    if (location.Equals("me"))
+                    {
+                        // записываем в качестве места текущее местоположение пользователя
+                        newPoiMarker.Coordinate = myMapMarker.Coordinate;
+                    }
+                    else if (location.Equals("marker"))
+                    {
+                        // записываем в качестве места координаты ближайшего маркера поиска
+
+                    }
+                    else
+                    {
+                        // считываем переданные координаты
+                        double latitude = (double)PhoneApplicationService.Current.State["latitude"];
+                        double longitude = (double)PhoneApplicationService.Current.State["longitude"];
+                        newPoiMarker.Coordinate = new GeoCoordinate(latitude, longitude);
+                        // удаляем из состояния приложения
+                        PhoneApplicationService.Current.State.Remove("latitude");
+                        PhoneApplicationService.Current.State.Remove("longitude");
+                    }
+                    // удаляем пару с ключом location из состояния прилоежния
+                    PhoneApplicationService.Current.State.Remove("location");
+
+                    // тип маркера
+                    newPoiMarker.Kind = (MarkerKind)PhoneApplicationService.Current.State["markerKind"];
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("markerKind");
+
+                    // получаем название и описание POI
+                    newPoiMarker.Name = (string)PhoneApplicationService.Current.State["poiName"];
+                    newPoiMarker.Description = (string)PhoneApplicationService.Current.State["poiDescription"];
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("poiName");
+                    PhoneApplicationService.Current.State.Remove("poiDescription");
+
+                    // получаем комментарий пользователя
+                    newPoiMarker.Comment = (string)PhoneApplicationService.Current.State["poiComment"];
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("poiComment");
+
+                    // добавляем прочие настройки к POI: параетры пользователя, например.
+                }
+                // удаляем пару с ключом type из состояния приложения
+                PhoneApplicationService.Current.State.Remove("type");
             }
         }
     }

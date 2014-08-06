@@ -43,7 +43,7 @@
             </StackPanel>
         </StackPanel>
         
-        <!--TitlePanel содержит имя приложения и заголовок страницы-->
+        <!--TitlePanel содержит заголовок страницы-->
         <StackPanel Grid.Row="0" Margin="12,17,0,10">
             <TextBlock Text="{Binding Path=LocalizedResources.AuthenticationTitle, Source={StaticResource LocalizedStrings}}"
                        x:Name="AuthenticationTitle"

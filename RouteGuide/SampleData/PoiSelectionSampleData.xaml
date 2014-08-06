@@ -1,0 +1,18 @@
+﻿<vm:PoiSelectionModel
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:RouteGuide.ViewModels">
+    
+    <vm:PoiSelectionModel.Items>
+        <vm:PoiSelectionItem PoiName="{Binding Path=LocalizedResources.PoiPoliceName, Source={StaticResource LocalizedStrings}}"
+                             PoiDescription="{Binding Path=LocalizedResources.PoiPoliceDescription, Source={StaticResource LocalizedStrings}}"
+                             PoiIconPath="/Assets/PoiIcons/Police.png" />
+        <vm:PoiSelectionItem PoiName="{Binding Path=LocalizedResources.PoiStopAutoName, Source={StaticResource LocalizedStrings}}"
+                             PoiDescription="{Binding Path=LocalizedResources.PoiStopAutoDescription, Source={StaticResource LocalizedStrings}}"
+                             PoiIconPath="/Assets/PoiIcons/StopAuto.png" />
+        <vm:PoiSelectionItem PoiName="{Binding Path=LocalizedResources.PoiStopWalkName, Source={StaticResource LocalizedStrings}}"
+                             PoiDescription="{Binding Path=LocalizedResources.PoiStopWalkDescription, Source={StaticResource LocalizedStrings}}"
+                             PoiIconPath="/Assets/PoiIcons/StopWalk.png" />
+    </vm:PoiSelectionModel.Items>
+    
+</vm:PoiSelectionModel>

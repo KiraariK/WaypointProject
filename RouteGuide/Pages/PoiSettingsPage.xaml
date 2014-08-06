@@ -1,0 +1,164 @@
+﻿<phone:PhoneApplicationPage
+    x:Class="RouteGuide.Pages.PoiSettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="{StaticResource PhoneForegroundBrush}"
+    SupportedOrientations="Portrait" Orientation="Portrait"
+    mc:Ignorable="d"
+    shell:SystemTray.IsVisible="True">
+    
+    <!--LayoutRoot представляет корневую сетку, где размещается все содержимое страницы-->
+    <Grid x:Name="LayoutRoot" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!--TitlePanel заголовок страницы-->
+        <StackPanel Grid.Row="0" Margin="12,17,0,10">
+            <TextBlock Text="{Binding Path=LocalizedResources.PoiSettingsTitle, Source={StaticResource LocalizedStrings}}"
+                       x:Name="PoiSettingsTitle"
+                       Visibility="Visible"
+                       Style="{StaticResource PhoneTextLargeStyle}"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!--ContentPanel – поместите здесь дополнительное содержимое-->
+        <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,6,12,0">
+            <StackPanel x:Name="PoiSettingsContent">
+                
+                <!-- Область картинки POI с пояснением -->
+                <Button x:Name="PoiSettingsButton"
+                        Width="240"
+                        Height="240"
+                        HorizontalAlignment="Left"
+                        BorderThickness="1"
+                        Margin="0, -12, -12, -12">
+                    
+                    <Grid Margin="-12, -12, -12, -8"
+                          Width="220"
+                          Height="220"
+                          HorizontalAlignment="Left">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="2*"/>
+                        </Grid.RowDefinitions>
+
+                        <Image Source="/Assets/PoiIcons/Police.png" Grid.Row="0"/>
+
+                        <StackPanel Grid.Row="1"
+                                    Background="{StaticResource PhoneAccentBrush}"
+                                    Margin="0, 0, 0, 0">
+                            <TextBlock Style="{StaticResource PhoneTextTitle3Style}"
+                                       TextWrapping="NoWrap"
+                                       Text="{Binding Path=LocalizedResources.PoiPoliceName, Source={StaticResource LocalizedStrings}}" />
+                            <TextBlock Style="{StaticResource PhoneTextNormalStyle}"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding Path=LocalizedResources.PoiPoliceDescription, Source={StaticResource LocalizedStrings}}" />
+                        </StackPanel>
+                        
+                    </Grid>
+                </Button>
+                
+                <!-- Область комментария -->
+                <TextBlock HorizontalAlignment="Left"
+                           Style="{StaticResource PhoneTextTitle3Style}"
+                           Text="{Binding Path=LocalizedResources.PoiSettingsComment, Source={StaticResource LocalizedStrings}}"
+                           Margin="12, 12, 0, 0"/>
+                
+                <TextBox x:Name="PoiSettingsCommentTextBox" 
+                         Margin="0, 0, 0, 0"/>
+                
+                <!-- Область выбора места размещения маркера POI -->
+                <Button x:Name="PoiSettingsSelectMyLocationButton"
+                        BorderThickness="0"
+                        HorizontalAlignment="Left"
+                        Click="PoiSettingsSelectMyLocationButton_Click"
+                        Margin="-12, 0, 0, 0">
+                    
+                <Grid x:Name="PoiSettingsSelectMyLocation"
+                      Margin="0, -12, 0, -12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <RadioButton x:Name="PoiSettingsMyLocationRadioButton"
+                                 Grid.Column="0"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 IsChecked="true"/>
+                    <TextBlock x:Name="PoiSettingsMyLocationTextBlock"
+                               Grid.Column="1"
+                               Style="{StaticResource PhoneTextLargeStyle}"
+                               Text="{Binding Path=LocalizedResources.PoiSettingsMyLocation, Source={StaticResource LocalizedStrings}}"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"/>
+                </Grid>
+                </Button>
+
+                <Button x:Name="PoiSettingsSelectSearchMarkerButton"
+                        BorderThickness="0"
+                        HorizontalAlignment="Left"
+                        Click="PoiSettingsSelectSearchMarkerButton_Click"
+                        Margin="-12, 0, 0, 0">
+                    
+                <Grid x:Name="PoiSettingsSelectSearchMarkerLocation"
+                      Margin="0, -12, 0, -12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <RadioButton x:Name="PoiSettingsSearchMarkerRadioButton"
+                                 Grid.Column="0"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"/>
+
+                    <TextBlock x:Name="PoiSettingsSearchMarkerTextBlock"
+                               Grid.Column="1"
+                               Style="{StaticResource PhoneTextLargeStyle}"
+                               Text="{Binding Path=LocalizedResources.PoiSettingsMarkerSearchLocation, Source={StaticResource LocalizedStrings}}"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"/>
+                </Grid>
+                </Button>
+
+                <Button x:Name="PoiSettingsSelectSearchLocation"
+                        BorderThickness="0"
+                        HorizontalAlignment="Left"
+                        Click="PoiSettingsSelectSearchLocation_Click"
+                        Margin="-12, 0, 0, 0">
+                    
+                    <Grid x:Name="PoiSettingsSearchLocation"
+                          Margin="0, -12, 0, -12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <RadioButton x:Name="PoiSettingsSearchRadioButton"
+                                 Grid.Column="0"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"/>
+                    <TextBlock x:Name="PoiSettingsSearchTextBlock"
+                               Grid.Column="1"
+                               Style="{StaticResource PhoneTextLargeStyle}"
+                               Text="{Binding Path=LocalizedResources.PoiSettingsSearchLocation, Source={StaticResource LocalizedStrings}}"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+                
+            </StackPanel>
+        </Grid>
+    </Grid>
+
+</phone:PhoneApplicationPage>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RouteGuide.Classes
 {
-    public class MarkerIconStore
+    public class MarkerStore
     {
         private static string noneMarkerPath = "";
         private static string myMarkerPath = "/Assets/Markers/Me.png";

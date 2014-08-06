@@ -197,4 +197,37 @@
   <data name="ProgressIndicatorCurrentLocationText" xml:space="preserve">
     <value>Определение местоположения</value>
   </data>
+  <data name="PoiPoliceDescription" xml:space="preserve">
+    <value>В этом месте стоит дорожный патруль</value>
+  </data>
+  <data name="PoiPoliceName" xml:space="preserve">
+    <value>Менты</value>
+  </data>
+  <data name="PoiSettingsTitle" xml:space="preserve">
+    <value>Поставить метку</value>
+  </data>
+  <data name="PoiStopAutoDescription" xml:space="preserve">
+    <value>В этом месте перекрыты автомобильные дорроги</value>
+  </data>
+  <data name="PoiStopAutoName" xml:space="preserve">
+    <value>Проезда нет</value>
+  </data>
+  <data name="PoiStopWalkDescription" xml:space="preserve">
+    <value>В этом месте перекрыты пешеходные дороги</value>
+  </data>
+  <data name="PoiStopWalkName" xml:space="preserve">
+    <value>Не пройти</value>
+  </data>
+  <data name="PoiSettingsComment" xml:space="preserve">
+    <value>Комментарий:</value>
+  </data>
+  <data name="PoiSettingsMarkerSearchLocation" xml:space="preserve">
+    <value>Отмеченное на карте</value>
+  </data>
+  <data name="PoiSettingsMyLocation" xml:space="preserve">
+    <value>Мое местоположение</value>
+  </data>
+  <data name="PoiSettingsSearchLocation" xml:space="preserve">
+    <value>Указать место</value>
+  </data>
 </root>
