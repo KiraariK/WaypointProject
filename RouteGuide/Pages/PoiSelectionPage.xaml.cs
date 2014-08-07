@@ -184,7 +184,7 @@ namespace RouteGuide.Pages
              */
             if (PoiSelectionList.SelectedItems.Count == 1)
             {
-                if (PoiSelectionList.SelectedItems[0] == lastSelectedItem)
+                if (PoiSelectionList.SelectedItems[0] == lastSelectedItem && lastSelectedItem.PoiKind != (int)MarkerKind.Custom)
                     return;
 
                 lastSelectedItem = PoiSelectionList.SelectedItems[0] as PoiSelectionItem;
