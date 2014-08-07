@@ -25,7 +25,7 @@ namespace RouteGuide.Pages
             // Загрузка данных модели отображения социальных сетей
             DataContext = LoadAuthenticationData();
 
-            BuildLocalizedApplicationBar();
+            CreateApplicationBar();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -36,6 +36,9 @@ namespace RouteGuide.Pages
             }
         }
 
+        /*
+         * Функция производит загрузку данных модели для отображения в runtime
+         */
         private object LoadAuthenticationData()
         {
             if (authenticationViewModel == null)
@@ -55,7 +58,10 @@ namespace RouteGuide.Pages
             }
         }
 
-        private void BuildLocalizedApplicationBar()
+        /*
+         * Создает Application Bar и кнопки в нем
+         */
+        private void CreateApplicationBar()
         {
             ApplicationBar = new ApplicationBar();
 
@@ -73,6 +79,9 @@ namespace RouteGuide.Pages
             ApplicationBar.IsVisible = false;
         }
 
+        /*
+         * Функция, которая делает видимой панель для ввода пользовательских данных для входа в аккаунт социальной сети
+         */
         private void SetUserCredentialsPanelVisibility(bool IsVisible, string solcialNetworkName = "")
         {
             if (IsVisible)
@@ -101,6 +110,9 @@ namespace RouteGuide.Pages
             }
         }
 
+        /*
+         * Функция, делающая видимым строку прогресса загрузки при аутентификации в социальной сети
+         */
         private void SetAuthenticationProgressBarVisibility(bool IsVisible)
         {
             if (UserAccountCredentials.Visibility == Visibility.Visible)
@@ -122,6 +134,9 @@ namespace RouteGuide.Pages
             }
         }
 
+        /*
+         * Функция, скрывающая панель ввода пользовательских данных и строку загрузки при отмене ввода данных
+         */
         private void CancelAuthentication()
         {
             SetAuthenticationProgressBarVisibility(false);

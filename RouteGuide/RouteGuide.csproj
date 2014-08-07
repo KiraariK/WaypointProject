@@ -106,6 +106,9 @@
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\PoiSelectionPage.xaml.cs">
+      <DependentUpon>PoiSelectionPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PoiSettingsPage.xaml.cs">
       <DependentUpon>PoiSettingsPage.xaml</DependentUpon>
     </Compile>
@@ -130,6 +133,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\MainPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PoiSelectionPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -172,7 +179,15 @@
     <Content Include="Assets\Logos\Twitter_logo.png" />
     <Content Include="Assets\Logos\VK_logo.png" />
     <Content Include="Assets\Markers\Me.png" />
+    <Content Include="Assets\PoiIcons\BadRoad.png" />
+    <Content Include="Assets\PoiIcons\Camera.png" />
+    <Content Include="Assets\PoiIcons\Crash.png" />
+    <Content Include="Assets\PoiIcons\Custom.png" />
+    <Content Include="Assets\PoiIcons\Ice.png" />
+    <Content Include="Assets\PoiIcons\Mistake.png" />
     <Content Include="Assets\PoiIcons\Police.png" />
+    <Content Include="Assets\PoiIcons\Pool.png" />
+    <Content Include="Assets\PoiIcons\Repairs.png" />
     <Content Include="Assets\PoiIcons\StopAuto.png" />
     <Content Include="Assets\PoiIcons\StopWalk.png" />
     <Content Include="Assets\Tiles\FlipCycleTileLarge.png">

@@ -198,7 +198,7 @@
     <value>Определение местоположения</value>
   </data>
   <data name="PoiPoliceDescription" xml:space="preserve">
-    <value>В этом месте стоит дорожный патруль</value>
+    <value>Дорожный патруль</value>
   </data>
   <data name="PoiPoliceName" xml:space="preserve">
     <value>Менты</value>
@@ -207,13 +207,13 @@
     <value>Поставить метку</value>
   </data>
   <data name="PoiStopAutoDescription" xml:space="preserve">
-    <value>В этом месте перекрыты автомобильные дорроги</value>
+    <value>Дорога перекрыта</value>
   </data>
   <data name="PoiStopAutoName" xml:space="preserve">
     <value>Проезда нет</value>
   </data>
   <data name="PoiStopWalkDescription" xml:space="preserve">
-    <value>В этом месте перекрыты пешеходные дороги</value>
+    <value>Тротуар перекрыт</value>
   </data>
   <data name="PoiStopWalkName" xml:space="preserve">
     <value>Не пройти</value>
@@ -229,5 +229,68 @@
   </data>
   <data name="PoiSettingsSearchLocation" xml:space="preserve">
     <value>Указать место</value>
+  </data>
+  <data name="PoiSelectionTitle" xml:space="preserve">
+    <value>Выбрать метку</value>
+  </data>
+  <data name="PoiBadRoadDescription" xml:space="preserve">
+    <value>Ужасно ехать, плохо ходить</value>
+  </data>
+  <data name="PoiBadRoadName" xml:space="preserve">
+    <value>Плохая дорога</value>
+  </data>
+  <data name="PoiCameraDescription" xml:space="preserve">
+    <value>Дорожное наблюдение</value>
+  </data>
+  <data name="PoiCameraName" xml:space="preserve">
+    <value>Камеры</value>
+  </data>
+  <data name="PoiCrashDescription" xml:space="preserve">
+    <value>Дорожное происшествие</value>
+  </data>
+  <data name="PoiCrashName" xml:space="preserve">
+    <value>Авария</value>
+  </data>
+  <data name="PoiCustomDescription" xml:space="preserve">
+    <value>Задать опции самому</value>
+  </data>
+  <data name="PoiCustomName" xml:space="preserve">
+    <value>Моя метка</value>
+  </data>
+  <data name="PoiIceDescription" xml:space="preserve">
+    <value>Можно поскользнуться</value>
+  </data>
+  <data name="PoiIceName" xml:space="preserve">
+    <value>Лёд</value>
+  </data>
+  <data name="PoiMistakeDescription" xml:space="preserve">
+    <value>Неверная метка</value>
+  </data>
+  <data name="PoiMistakeName" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="PoiPoolDescription" xml:space="preserve">
+    <value>Очень большая лужа</value>
+  </data>
+  <data name="PoiPoolName" xml:space="preserve">
+    <value>Лужа</value>
+  </data>
+  <data name="PoiRepairsDescription" xml:space="preserve">
+    <value>Ремонтные работы</value>
+  </data>
+  <data name="PoiRepairsName" xml:space="preserve">
+    <value>Ремонт</value>
+  </data>
+  <data name="PoiSelectionCustomName" xml:space="preserve">
+    <value>Название:</value>
+  </data>
+  <data name="PoiSelectionCustomTitle" xml:space="preserve">
+    <value>Настройки метки</value>
+  </data>
+  <data name="PoiSettingsCustomDescription" xml:space="preserve">
+    <value>Краткое описание:</value>
+  </data>
+  <data name="PoiSettingsCustomEmptyError" xml:space="preserve">
+    <value>Не все необходимые поля настроек заполнены</value>
   </data>
 </root>

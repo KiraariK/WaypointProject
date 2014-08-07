@@ -9,6 +9,7 @@ using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using RouteGuide.Resources;
 using RouteGuide.Classes;
+using System.Windows.Media.Imaging;
 
 namespace RouteGuide.Pages
 {
@@ -17,6 +18,7 @@ namespace RouteGuide.Pages
         private MarkerKind selectedPoiKind;
         private string selectedPoiName;
         private string selectedPoiDescription;
+        private string selectedPoiIconPath;
         private string selectedPoiComment;
         private double selectedPoiMarkerLatitude;
         private double selectedPoiMarkerLongitude;
@@ -25,11 +27,14 @@ namespace RouteGuide.Pages
         {
             InitializeComponent();
 
-            CreateApplicationBar();
+            CreateDefaultPoiData();
 
-            CreateDefaultPoi();
+            CreateApplicationBar();
         }
 
+        /*
+         * Создает Application Bar, запихивая кнопки 'принять' и 'отменить'
+         */
         private void CreateApplicationBar()
         {
             ApplicationBar = new ApplicationBar();
@@ -45,16 +50,34 @@ namespace RouteGuide.Pages
             ApplicationBar.Buttons.Add(appBarCancelButton);
         }
 
-        private void CreateDefaultPoi()
+        /*
+         * Заполняет данные о POI по умлочанию:
+         * если до этого в данном сеансе работы с приложением пользователь не выбирал POI,
+         * то выставляется POI по-умлочанию,
+         * иначе выставляется последняя выбранная POI
+         */
+        private void CreateDefaultPoiData()
         {
             // если нету сохраненной выбранной в прошлый раз POI, то выставляем по умолчанию
             // тестовый вариант!!!
             selectedPoiKind = MarkerKind.Police;
             selectedPoiName = AppResources.PoiPoliceName;
             selectedPoiDescription = AppResources.PoiPoliceDescription;
+            selectedPoiIconPath = "/Assets/PoiIcons/Police.png";
             selectedPoiComment = string.Empty;
             selectedPoiMarkerLatitude = double.NaN;
             selectedPoiMarkerLongitude = double.NaN;
+        }
+
+        /*
+         * Отрисовывает данные о POI
+         */
+        private void SetViewFromData()
+        {
+            BitmapImage image = new BitmapImage(new Uri(selectedPoiIconPath, UriKind.RelativeOrAbsolute));
+            PoiSettingsImage.Source = image;
+            PoiSettingsName.Text = selectedPoiName;
+            PoiSettingsDescription.Text = selectedPoiDescription;
         }
 
         /*
@@ -72,10 +95,13 @@ namespace RouteGuide.Pages
         }
 
         /*
-         * функция, формирующая строку параметров, записываемую в URI при переходе на MainPage
+         * функция сохранения параметрорв для передачи на предыдущую страницу перед переходом
          */
         private void SavePoiSettings()
         {
+            // забираем комментарий пользователя
+            selectedPoiComment = PoiSettingsCommentTextBox.Text;
+
             PhoneApplicationService.Current.State["type"] = "PoiSettings";
 
             if (PoiSettingsMyLocationRadioButton.IsChecked == true)
@@ -92,9 +118,11 @@ namespace RouteGuide.Pages
             {
                 // координаты будут записаны в состояние приложения для того, чтобы их можно было извлечь на MainPage
                 PhoneApplicationService.Current.State["location"] = "search";
+
                 // !!! Только в качестве заглушки !!!
                 selectedPoiMarkerLatitude = 56.4632;
                 selectedPoiMarkerLongitude = 84.9726;
+                // !!! Только в качестве заглушки !!!
                 PhoneApplicationService.Current.State["latitude"] = selectedPoiMarkerLatitude;
                 PhoneApplicationService.Current.State["longitude"] = selectedPoiMarkerLongitude;
             }
@@ -107,6 +135,14 @@ namespace RouteGuide.Pages
             PhoneApplicationService.Current.State["poiComment"] = selectedPoiComment;
 
             // Все остальное (пользователь, время установки и прочее) можно узнать на MainPage
+        }
+
+        /*
+         * Событие нажатия на кнопку выбора метки
+         */
+        private void PoiSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new Uri("/Pages/PoiSelectionPage.xaml", UriKind.RelativeOrAbsolute));
         }
 
         /*
@@ -145,6 +181,45 @@ namespace RouteGuide.Pages
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+
+            // обрабатываем передачу данных со станицы выбора POI
+            if (PhoneApplicationService.Current.State.ContainsKey("type"))
+            {
+                // предыдущая страница передала данные
+                string type = PhoneApplicationService.Current.State["type"] as string;
+
+                if (type == null)
+                {
+                    // удаляем пару с ключом type из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("type");
+                    return;
+                }
+
+                if (type.Equals("SelectedPoi"))
+                {
+                    // данные передала страница выбра POI
+
+                    selectedPoiName = PhoneApplicationService.Current.State["poiName"] as string;
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("poiName");
+
+                    selectedPoiDescription = PhoneApplicationService.Current.State["poiDescription"] as string;
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("poiDescription");
+
+                    selectedPoiIconPath = PhoneApplicationService.Current.State["poiIconPath"] as string;
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("poiIconPath");
+
+                    selectedPoiKind = (MarkerKind)PhoneApplicationService.Current.State["poiKind"];
+                    // удаляем из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("poiKind");
+
+                    SetViewFromData();
+                }
+                // удаляем пару с ключом type из состояния приложения
+                PhoneApplicationService.Current.State.Remove("type");
+            }
         }
     }
 }

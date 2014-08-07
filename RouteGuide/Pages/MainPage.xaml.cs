@@ -567,7 +567,11 @@ namespace RouteGuide
                 string type = PhoneApplicationService.Current.State["type"] as string;
 
                 if (type == null)
+                {
+                    // удаляем пару с ключом type из состояния приложения
+                    PhoneApplicationService.Current.State.Remove("type");
                     return;
+                }
 
                 if (type.Equals("PoiSettings"))
                 {

@@ -22,8 +22,7 @@
         </Grid.RowDefinitions>
 
         <!-- Эта панель показывается после выбора одного из item'ов -->
-        <StackPanel x:Name="UserAccountCredentials" Visibility="Collapsed" Margin="12,17,0,10"
-                    >
+        <StackPanel x:Name="UserAccountCredentials" Visibility="Collapsed" Margin="12,17,0,10">
             <TextBlock Text="{Binding Path=LocalizedResources.AuthenticationEnterTitle, Source={StaticResource LocalizedStrings}}"
                        x:Name="AuthenticationEnterTitle"
                        Style="{StaticResource PhoneTextLargeStyle}"

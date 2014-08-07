@@ -39,7 +39,8 @@
                         Height="240"
                         HorizontalAlignment="Left"
                         BorderThickness="1"
-                        Margin="0, -12, -12, -12">
+                        Margin="0, -12, -12, -12"
+                        Click="PoiSettingsButton_Click">
                     
                     <Grid Margin="-12, -12, -12, -8"
                           Width="220"
@@ -51,15 +52,20 @@
                             <RowDefinition Height="2*"/>
                         </Grid.RowDefinitions>
 
-                        <Image Source="/Assets/PoiIcons/Police.png" Grid.Row="0"/>
+                        <Image x:Name="PoiSettingsImage"
+                               Source="/Assets/PoiIcons/Police.png"
+                               Grid.Row="0"
+                               Margin="5, 5, 5, 0"/>
 
                         <StackPanel Grid.Row="1"
                                     Background="{StaticResource PhoneAccentBrush}"
                                     Margin="0, 0, 0, 0">
-                            <TextBlock Style="{StaticResource PhoneTextTitle3Style}"
+                            <TextBlock x:Name="PoiSettingsName"
+                                       Style="{StaticResource PhoneTextTitle3Style}"
                                        TextWrapping="NoWrap"
                                        Text="{Binding Path=LocalizedResources.PoiPoliceName, Source={StaticResource LocalizedStrings}}" />
-                            <TextBlock Style="{StaticResource PhoneTextNormalStyle}"
+                            <TextBlock x:Name="PoiSettingsDescription"
+                                       Style="{StaticResource PhoneTextNormalStyle}"
                                        TextWrapping="Wrap"
                                        Text="{Binding Path=LocalizedResources.PoiPoliceDescription, Source={StaticResource LocalizedStrings}}" />
                         </StackPanel>

@@ -12,5 +12,6 @@ namespace RouteGuide.ViewModels
         public string PoiName { get; set; }
         public string PoiDescription { get; set; }
         public string PoiIconPath { get; set; }
+        public int PoiKind { get; set; }
     }
 }
