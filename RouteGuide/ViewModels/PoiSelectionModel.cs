@@ -96,6 +96,14 @@ namespace RouteGuide.ViewModels
 
             viewModel.Items.Add(new PoiSelectionItem
             {
+                PoiName = AppResources.PoiChatName,
+                PoiDescription = AppResources.PoiChatDescription,
+                PoiIconPath = "/Assets/PoiIcons/Chat.png",
+                PoiKind = (int)Classes.MarkerKind.Chat
+            });
+
+            viewModel.Items.Add(new PoiSelectionItem
+            {
                 PoiName = AppResources.PoiMistakeName,
                 PoiDescription = AppResources.PoiMistakeDescription,
                 PoiIconPath = "/Assets/PoiIcons/Mistake.png",

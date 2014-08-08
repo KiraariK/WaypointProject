@@ -293,4 +293,10 @@
   <data name="PoiSettingsCustomEmptyError" xml:space="preserve">
     <value>Не все необходимые поля настроек заполнены</value>
   </data>
+  <data name="PoiChatDescription" xml:space="preserve">
+    <value>Если нечем заняться</value>
+  </data>
+  <data name="PoiChatName" xml:space="preserve">
+    <value>Чат</value>
+  </data>
 </root>

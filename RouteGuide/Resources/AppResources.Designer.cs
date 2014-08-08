@@ -304,6 +304,24 @@ namespace RouteGuide.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Если нечем заняться.
+        /// </summary>
+        public static string PoiChatDescription {
+            get {
+                return ResourceManager.GetString("PoiChatDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Чат.
+        /// </summary>
+        public static string PoiChatName {
+            get {
+                return ResourceManager.GetString("PoiChatName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Дорожное происшествие.
         /// </summary>
         public static string PoiCrashDescription {

@@ -181,6 +181,7 @@
     <Content Include="Assets\Markers\Me.png" />
     <Content Include="Assets\PoiIcons\BadRoad.png" />
     <Content Include="Assets\PoiIcons\Camera.png" />
+    <Content Include="Assets\PoiIcons\Chat.png" />
     <Content Include="Assets\PoiIcons\Crash.png" />
     <Content Include="Assets\PoiIcons\Custom.png" />
     <Content Include="Assets\PoiIcons\Ice.png" />
