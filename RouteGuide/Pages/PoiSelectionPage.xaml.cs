@@ -93,7 +93,7 @@ namespace RouteGuide.Pages
             else
             {
                 // Открыта панель ввода пользовательских настроек POI
-                if (!CustomNameTextBox.Text.Equals(string.Empty) && !CustomDescriptionTextBox.Text.Equals(string.Empty))
+                if (!CustomNameTextBox.Text.Equals(string.Empty)/* && !CustomDescriptionTextBox.Text.Equals(string.Empty)*/)
                 {
                     customPoiName = CustomNameTextBox.Text;
                     customPoiDescription = CustomDescriptionTextBox.Text;

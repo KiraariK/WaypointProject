@@ -1,0 +1,18 @@
+﻿<vm:PoiLocationSettingsModel
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:RouteGuide.ViewModels">
+    
+    <vm:PoiLocationSettingsModel.Items>
+        <vm:PoiLocationSettingsItem Content="Мое местоположение"
+                                    IsChecked="Visible"
+                                    Id="0"/>
+        <vm:PoiLocationSettingsItem Content="улица Вершинина 46 Томск Томская область"
+                                    IsChecked="Collapsed"
+                                    Id="1"/>
+        <vm:PoiLocationSettingsItem Content="Указать другое место"
+                                    IsChecked="Collapsed"
+                                    Id="2"/>
+    </vm:PoiLocationSettingsModel.Items>
+    
+</vm:PoiLocationSettingsModel>

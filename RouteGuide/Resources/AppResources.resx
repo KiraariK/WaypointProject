@@ -228,7 +228,7 @@
     <value>Мое местоположение</value>
   </data>
   <data name="PoiSettingsSearchLocation" xml:space="preserve">
-    <value>Указать место</value>
+    <value>Указать другое место</value>
   </data>
   <data name="PoiSelectionTitle" xml:space="preserve">
     <value>Выбрать метку</value>
@@ -298,5 +298,11 @@
   </data>
   <data name="PoiChatName" xml:space="preserve">
     <value>Чат</value>
+  </data>
+  <data name="MainPageSearchNotFoundMessage" xml:space="preserve">
+    <value>К сожалению по вашему запросу ничего не найдено</value>
+  </data>
+  <data name="ProgressIndicatorSearchTermText" xml:space="preserve">
+    <value>Идет поиск</value>
   </data>
 </root>

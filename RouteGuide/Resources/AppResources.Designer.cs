@@ -268,6 +268,15 @@ namespace RouteGuide.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на К сожалению по вашему запросу ничего не найдено.
+        /// </summary>
+        public static string MainPageSearchNotFoundMessage {
+            get {
+                return ResourceManager.GetString("MainPageSearchNotFoundMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Ужасно ехать, плохо ходить.
         /// </summary>
         public static string PoiBadRoadDescription {
@@ -520,7 +529,7 @@ namespace RouteGuide.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Указать место.
+        ///   Ищет локализованную строку, похожую на Указать другое место.
         /// </summary>
         public static string PoiSettingsSearchLocation {
             get {
@@ -579,6 +588,15 @@ namespace RouteGuide.Resources {
         public static string ProgressIndicatorCurrentLocationText {
             get {
                 return ResourceManager.GetString("ProgressIndicatorCurrentLocationText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Идет поиск.
+        /// </summary>
+        public static string ProgressIndicatorSearchTermText {
+            get {
+                return ResourceManager.GetString("ProgressIndicatorSearchTermText", resourceCulture);
             }
         }
         

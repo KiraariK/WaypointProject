@@ -9,6 +9,7 @@ using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using System.Device.Location;
 using Microsoft.Phone.Maps.Controls;
+using Microsoft.Phone.Maps.Services;
 using RouteGuide.Resources;
 using Windows.Devices.Geolocation;
 
@@ -22,26 +23,40 @@ namespace RouteGuide
     public partial class MainPage : PhoneApplicationPage
     {
         /*
-         * Замечание - все объекта на слое карты наносятся поверх других объектов (в порядке их добавление на слой карты)
-         * Возможно, стоит пересмотреть порядок слоев карты в будущем.
+         * Замечание - все объекта на слое карты наносятся поверх других объектов (в порядке их добавление на слой карты).
+         * А также каждый слой наносится поверх другого слоя от 0 и далее до самого верхнего.
+         */
+        /*
+         * Реализация маркеров: отображение отделено от логики. Отображение (картинка маркера на карте)
+         * содержит только ссылку (индекс списка) на информацию о маркере.
          */
 
-        // Текущее местоположение пользователя (слой карты = 0)
+        // Список особых меток на карте (слой карты = 0)
+        private List<Marker> specialMapMarkers = null;
+
+        // Текущее местоположение пользователя (слой карты = 1)
         private MyLocationMarker myMapMarker = null;
 
-        // Список маркеров POI (слой карты = 1)
+        // Список маркеров POI (слой карты = 2)
         private List<POIMarker> poiMapMarkers = null;
         // Радиус от пользователя в котором нужно загрузить POI (метры)
         private const double poiRadius = 1000.0;
 
-        // Список особых меток на карте (слой карты = 2)
-        private List<Marker> specialMapMarker = null;
-
         // Список маркеров поиска (слой карты = 3)
-        private List<SearchMarker> searchMapMarker = null;
+        private List<SearchMarker> searchMapMarkers = null;
 
         // Список маркеров промежуточных точек маршрутов (слой карты = 4)
         private List<Marker> waypointMapMarkers = null;
+
+
+        // Объект, с помощью которого производится запрос на поиск на карте
+        private GeocodeQuery searchQuery = null;
+
+        // Флаг, показывающий, происходит ли поиск маршрута
+        private bool _isRouteSearch = false;
+
+        // Флаг, определяющий показан ли диалог поиска
+        private bool _searchInProgress = false;
 
         // Конструктор
         public MainPage()
@@ -129,6 +144,25 @@ namespace RouteGuide
         }
 
         /*
+         * функция создания нового Apply-Cancel Application Bar.
+         * функция полностью заполняет Application Bar (определяет кнопки и пункты меню).
+         */
+        private void CreateDialogApplicationBar()
+        {
+            ApplicationBar = new ApplicationBar();
+
+            ApplicationBarIconButton appBarApplyButton = new ApplicationBarIconButton(new Uri("/Assets/Icons/Accept.png", UriKind.RelativeOrAbsolute));
+            appBarApplyButton.Text = AppResources.ApplicationBarAccept;
+            appBarApplyButton.Click += appBarApplyButton_Click;
+            ApplicationBar.Buttons.Add(appBarApplyButton);
+
+            ApplicationBarIconButton appBarCancelButton = new ApplicationBarIconButton(new Uri("/Assets/Icons/Cancel.png", UriKind.RelativeOrAbsolute));
+            appBarCancelButton.Text = AppResources.ApplicationBarCancel;
+            appBarCancelButton.Click += appBarCancelButton_Click;
+            ApplicationBar.Buttons.Add(appBarCancelButton);
+        }
+
+        /*
          * Функция создает слои для отрисовки маркеров на карте,
          * загружает маркеры:
          * текущее положение пользователя + фокусировка с масштабированием на нем,
@@ -139,6 +173,10 @@ namespace RouteGuide
         {
             RouteGuideMap.Layers.Clear();
 
+            MapLayer specialMapLayer = new MapLayer();
+            // получить данные о специальных маркерах, записать в слой карты
+            RouteGuideMap.Layers.Add(specialMapLayer);
+
             MapLayer meMapLayer = new MapLayer();
             GetMyCurrentStartPosition(meMapLayer);
             RouteGuideMap.Layers.Add(meMapLayer);
@@ -146,10 +184,6 @@ namespace RouteGuide
             MapLayer poiMapLayer = new MapLayer();
             // получить данные о POI, записть в слой карты
             RouteGuideMap.Layers.Add(poiMapLayer);
-
-            MapLayer specialMapLayer = new MapLayer();
-            // получить данные о специальных маркерах, записать в слой карты
-            RouteGuideMap.Layers.Add(specialMapLayer);
 
             MapLayer searchMapLayer = new MapLayer();
             RouteGuideMap.Layers.Add(searchMapLayer);
@@ -170,10 +204,10 @@ namespace RouteGuide
             geolocator.DesiredAccuracy = PositionAccuracy.High;
 
             myMapMarker = MyLocationMarker.Instance();
-            myMapMarker.Kind = MarkerKind.Me;
 
             try
             {
+                                                                                // устаревание инфы     // таймаут определения местоположения
                 Geoposition myPosition = await geolocator.GetGeopositionAsync(TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(20));
                 myMapMarker.Accuracy = myPosition.Coordinate.Accuracy;
 
@@ -200,7 +234,6 @@ namespace RouteGuide
             geolocator.DesiredAccuracy = PositionAccuracy.High;
 
             myMapMarker = MyLocationMarker.Instance();
-            myMapMarker.Kind = MarkerKind.Me;
 
             try
             {
@@ -263,7 +296,7 @@ namespace RouteGuide
         /*
          * функция обновления радиуса точности определения текущего местположения пользователя
          */
-        private void UpdateLocationAccuracyRadius(MapOverlay overlay)
+        private void UpdateMyLocationAccuracyRadius(MapOverlay overlay)
         {
             /* метод вычислений взят чисто из примера от Nokia для Windows Phone 8 Map API */
             // The ground resolution (in meters per pixel) varies depending on the level of detail 
@@ -301,8 +334,9 @@ namespace RouteGuide
         /*
          * функция загружает нужную иконку маркера,
          * создает объект маркера и добавляет его на слой карты.
+         * Аргумент index используется для ссылки на объект маркера из списка.
          */
-        private void DrawMapMarker(GeoCoordinate coordinate, MarkerKind markerKind, MapLayer mapLayer)
+        private void DrawMapMarker(GeoCoordinate coordinate, MarkerKind markerKind, MapLayer mapLayer, int index = 0)
         {
             // создание маркера
             Image marker = new Image();
@@ -312,18 +346,22 @@ namespace RouteGuide
             // позволяем взаимодействие с маркером
             switch (markerKind)
             {
+                    /* 
+                     * В совйство Tag записывается строка, состоящая из 2-х частей, разделенных символом '_'.
+                     * В первой части записываеся тип маркера - число перечисления MarkerKind,
+                     * а во второй - информация о маркере (обычно ссылка на элемент соответствующего списка)
+                     */
                 case MarkerKind.Me:
-                    //marker.Tag = new GeoCoordinate(myMapMarker.Coordinate.Latitude, myMapMarker.Coordinate.Longitude);
-                    marker.Tag = "Я здесь";
+                    marker.Tag = (int)markerKind + "_" + "Я здесь";
                     break;
                 case MarkerKind.Home:
-                    marker.Tag = "Мой дом";
+                    marker.Tag = (int)markerKind + "_" + "Здесь мой дом";
                     break;
                 case MarkerKind.Work:
-                    marker.Tag = "Моя работа";
+                    marker.Tag = (int)markerKind + "_" + "Здесь моя работа";
                     break;
                 case MarkerKind.Search:
-                    // запихиваем структуру для маркера поиска
+                    marker.Tag = (int)markerKind + "_" + index;
                     break;
                 case MarkerKind.Location:
                     break;
@@ -331,7 +369,7 @@ namespace RouteGuide
                     break;
                 case MarkerKind.Waypoint:
                     break;
-                default:
+                default: // подразумевается POI
                     // загружаем структуру для макера POI
                     break;
 
@@ -356,18 +394,34 @@ namespace RouteGuide
             string message = marker.Tag as string;
 
             if (message == null)
-            {
-                GeoCoordinate coordinate = marker.Tag as GeoCoordinate;
-
-                if (coordinate == null)
-                    return;
-
-                MessageBox.Show(string.Format("{0} - {1}", coordinate.Latitude.ToString(), coordinate.Longitude.ToString()));
-
                 return;
-            }
 
-            MessageBox.Show(message);
+            string[] parts = message.Split('_');
+            MarkerKind kind = (MarkerKind)int.Parse(parts[0]);
+            switch(kind)
+            {
+                case MarkerKind.Me:
+                    MessageBox.Show(parts[1]);
+                    break;
+                case MarkerKind.Home:
+                    MessageBox.Show(parts[1]);
+                    break;
+                case MarkerKind.Work:
+                    MessageBox.Show(parts[1]);
+                    break;
+                case MarkerKind.Search:
+                    MessageBox.Show("Индекс точки: " + parts[1]);
+                    break;
+                case MarkerKind.Location:
+                    break;
+                case MarkerKind.Destination:
+                    break;
+                case MarkerKind.Waypoint:
+                    break;
+                default: // подразумевается POI
+                    // загружаем структуру для макера POI
+                    break;
+            }
         }
 
         /*
@@ -383,7 +437,7 @@ namespace RouteGuide
         }
 
         /*
-         * функция устанавливает видимость элементов кправления на экране при использовании кнопки поиска
+         * функция устанавливает видимость элементов управления на экране при использовании кнопки поиска
          * на основном Application Bar.
          */
         private void SetSearchTextBoxVisibility(bool isVisible)
@@ -393,14 +447,89 @@ namespace RouteGuide
                 RouteGuideMap.IsEnabled = !isVisible;
 
                 SearchTextBox.SelectAll();
-                SearchTextBox.Visibility = Visibility.Visible;
+                SearchStaskPanel.Visibility = Visibility.Visible;
                 SearchTextBox.Focus();
+
+                _searchInProgress = true;
+                CreateDialogApplicationBar();
             }
             else
             {
                 RouteGuideMap.IsEnabled = !isVisible;
 
-                SearchTextBox.Visibility = Visibility.Collapsed;
+                SearchStaskPanel.Visibility = Visibility.Collapsed;
+
+                _searchInProgress = false;
+                CreateMainApplicationBar();
+            }
+        }
+
+        /*
+         * Функция, запускающая процесс поиска по заданному фрагменту строки
+         */
+        private void SearchForTerm(string term)
+        {
+            SetProgressIndicatiorVisibility(true, AppResources.ProgressIndicatorSearchTermText);
+            searchQuery = new GeocodeQuery();
+            searchQuery.SearchTerm = term;
+            searchQuery.GeoCoordinate = myMapMarker.Coordinate == null ? new GeoCoordinate(0, 0) : myMapMarker.Coordinate;
+            searchQuery.QueryCompleted += searchQuery_QueryCompleted;
+            searchQuery.QueryAsync();
+        }
+
+        void searchQuery_QueryCompleted(object sender, QueryCompletedEventArgs<IList<MapLocation>> e)
+        {
+            SetProgressIndicatiorVisibility(false);
+            if (e.Error == null)
+            {
+                if (e.Result.Count > 0)
+                {
+                    if (_isRouteSearch)
+                    {
+                        // Был произведен поиск пункта назначения маршрута
+                        //...
+                    }
+                    else
+                    {
+                        // Был произведен поиск объекта на карте по ключевому слову
+
+                        // Записываем результаты поиска в список маркеров поиска
+                        if (searchMapMarkers == null)
+                            searchMapMarkers = new List<SearchMarker>();
+                        else
+                            searchMapMarkers.Clear();
+
+                        for (int i = 0; i < e.Result.Count; i++)
+                        {
+                            SearchMarker searchMarker = new SearchMarker();
+                            searchMarker.Coordinate = e.Result[i].GeoCoordinate;
+                            searchMarker.Name = e.Result[i].Information.Name;
+                            searchMarker.Description = e.Result[i].Information.Description;
+                            searchMarker.Address = e.Result[i].Information.Address;
+                            searchMapMarkers.Add(searchMarker);
+                        }
+                        DrawSearchMarkers(RouteGuideMap.Layers[3]);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(AppResources.MainPageSearchNotFoundMessage);
+                }
+
+                searchQuery.Dispose();
+            }
+        }
+
+        private void DrawSearchMarkers(MapLayer mapLayer)
+        {
+            if (searchMapMarkers != null)
+            {
+                mapLayer.Clear();
+
+                for (int i = 0; i < searchMapMarkers.Count; i++)
+                {
+                    DrawMapMarker(searchMapMarkers[i].Coordinate, searchMapMarkers[i].Kind, mapLayer, i);
+                }
             }
         }
 
@@ -454,13 +583,27 @@ namespace RouteGuide
 
         private void CreatePoiButton_Click(object sender, RoutedEventArgs e)
         {
-            // подготовка данных для передачи на страницу настроек POI
+            if (searchMapMarkers == null)
+                NavigationService.Navigate(new Uri("/Pages/PoiSettingsPage.xaml", UriKind.RelativeOrAbsolute));
+            else if (searchMapMarkers.Count == 0)
+                NavigationService.Navigate(new Uri("/Pages/PoiSettingsPage.xaml", UriKind.RelativeOrAbsolute));
+            else
+            {
+                // Отмечаем в состоянии приложения, что будут передаваться данные на страницу настроек POI
+                PhoneApplicationService.Current.State["markerTransmitting"] = true;
 
-            NavigationService.Navigate(new Uri("/Pages/PoiSettingsPage.xaml", UriKind.RelativeOrAbsolute));
+                // подготовка данных для передачи на страницу настроек POI
+                string parameters = string.Format("?street={0}&houseNumber={1}&city={2}&county={3}",
+                    searchMapMarkers[0].Address.Street,
+                    searchMapMarkers[0].Address.HouseNumber,
+                    searchMapMarkers[0].Address.City,
+                    searchMapMarkers[0].Address.County);
+                NavigationService.Navigate(new Uri("/Pages/PoiSettingsPage.xaml" + parameters, UriKind.RelativeOrAbsolute));
+            }
         }
 
         /*
-         * События нажатия кнопок в Application Bar
+         * События нажатия кнопок в основном Application Bar
          */
         void appBarSearchButton_Click(object sender, EventArgs e)
         {
@@ -470,7 +613,7 @@ namespace RouteGuide
         void appBarLocationButton_Click(object sender, EventArgs e)
         {
             // определяем текущую позицию и перерисовываем её на соответствущем слое карты
-            UpdateMyCurrentPosition(RouteGuideMap.Layers[0]);
+            UpdateMyCurrentPosition(RouteGuideMap.Layers[1]);
         }
 
         void appBarFavoriteButton_Click(object sender, EventArgs e)
@@ -485,7 +628,27 @@ namespace RouteGuide
 
 
         /*
-         * События выбора одного из пунктов меню в Application Bar
+         * События нажатия кнопок Apply-Cancel Application Bar
+         */
+        void appBarApplyButton_Click(object sender, EventArgs e)
+        {
+            // обработка строки, введенной в SearchTextBox
+            if (!SearchTextBox.Text.Equals(string.Empty))
+            {
+                SearchForTerm(SearchTextBox.Text);
+            }
+
+            SetSearchTextBoxVisibility(false);
+        }
+
+        void appBarCancelButton_Click(object sender, EventArgs e)
+        {
+            SetSearchTextBoxVisibility(false);
+        }
+
+
+        /*
+         * События выбора одного из пунктов меню основного Application Bar
          */
         void appBarMenuAccount_Click(object sender, EventArgs e)
         {
@@ -532,23 +695,18 @@ namespace RouteGuide
 
         }
 
-        private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            SetSearchTextBoxVisibility(false);
-        }
-
         /*
          * События карты
          */
         private void RouteGuideMap_ZoomLevelChanged(object sender, MapZoomLevelChangedEventArgs e)
         {
             // перерисовываем изображение окружности погрешности определения местоположения пользователя
-            foreach (MapOverlay overlay in RouteGuideMap.Layers[0])
+            foreach (MapOverlay overlay in RouteGuideMap.Layers[1])
             {
                 Ellipse accuracyEllipce = overlay.Content as Ellipse;
                 if (accuracyEllipce != null)
                 {
-                    UpdateLocationAccuracyRadius(overlay);
+                    UpdateMyLocationAccuracyRadius(overlay);
                 }
             }
         }

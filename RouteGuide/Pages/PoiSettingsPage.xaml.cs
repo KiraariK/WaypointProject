@@ -11,6 +11,8 @@ using RouteGuide.Resources;
 using RouteGuide.Classes;
 using System.Windows.Media.Imaging;
 
+using RouteGuide.ViewModels;
+
 namespace RouteGuide.Pages
 {
     public partial class PoiSettingsPage : PhoneApplicationPage
@@ -23,6 +25,13 @@ namespace RouteGuide.Pages
         private double selectedPoiMarkerLatitude;
         private double selectedPoiMarkerLongitude;
 
+        private string markerSearchLocationContent = string.Empty;
+
+        // Показывает, происходит ли переход с данной страницы вперед
+        private bool _isGoForward = false;
+
+        private static PoiLocationSettingsModel poilocationModel = null;
+
         public PoiSettingsPage()
         {
             InitializeComponent();
@@ -30,6 +39,63 @@ namespace RouteGuide.Pages
             CreateDefaultPoiData();
 
             CreateApplicationBar();
+        }
+
+        /*
+         * Загрузка данных для модели отображения списка локаций для выставления маркера POI
+         */
+        private object LoadPoiLocationData(string markerSearchContent = "")
+        {
+            if (poilocationModel == null)
+                poilocationModel = new PoiLocationSettingsModel();
+
+            poilocationModel.LoadData(markerSearchContent);
+            return poilocationModel;
+        }
+
+        /*
+         * Перезагружает данные модели, вставляя результаты поиска новой локации
+         */
+        private object ReloadPoiLocationData(string searchContent, double latitude, double longitude, string markerSearchContent = "")
+        {
+            if (poilocationModel == null)
+                poilocationModel = new PoiLocationSettingsModel();
+
+            poilocationModel.LoadData(markerSearchContent);
+            poilocationModel.InsertSearchResultData(searchContent, latitude, longitude);
+            return poilocationModel;
+        }
+
+        /*
+         * Отмечает item с указанным индеском как checked (при выборе item'а из списка)
+         */
+        private object UpdateCheckingModelItems(PoiLocationSettingsItem item, string markerSearchContent = "")
+        {
+            if (poilocationModel == null)
+                poilocationModel = new PoiLocationSettingsModel();
+
+            poilocationModel.LoadData(markerSearchContent);
+            poilocationModel.CheckItem(item);
+            return poilocationModel;
+        }
+
+        /*
+         * Сбрасывает показатель того, что модель была изменена.
+         * При следующей загрузке она загрузится с нуля.
+         */
+        private void ResetModel()
+        {
+            if (poilocationModel != null)
+                poilocationModel.ResetModel();
+        }
+
+        public List<PoiLocationSettingsItem> GetModelDataList(string markerSearchContent = "")
+        {
+            if (poilocationModel == null)
+                poilocationModel = new PoiLocationSettingsModel();
+
+            poilocationModel.LoadData(markerSearchContent);
+            return poilocationModel.Items;
         }
 
         /*
@@ -86,11 +152,13 @@ namespace RouteGuide.Pages
         void appBarApplyButton_Click(object sender, EventArgs e)
         {
             SavePoiSettings();
+            ResetModel();
             NavigationService.GoBack();
         }
 
         void appBarCancelButton_Click(object sender, EventArgs e)
         {
+            ResetModel();
             NavigationService.GoBack();
         }
 
@@ -102,19 +170,33 @@ namespace RouteGuide.Pages
             // забираем комментарий пользователя
             selectedPoiComment = PoiSettingsCommentTextBox.Text;
 
+            // Выгружаем данные из модели
+            List<PoiLocationSettingsItem> modelItems = GetModelDataList(markerSearchLocationContent);
+            if (modelItems == null)
+                return;
+
+            PoiLocationSettingsItem selectedLocation = null;
+            for (int i = 0; i < modelItems.Count; i++)
+            {
+                if (modelItems[i].IsChecked == Visibility.Visible)
+                    selectedLocation = modelItems[i];
+            }
+            if (selectedLocation == null)
+                return;
+
             PhoneApplicationService.Current.State["type"] = "PoiSettings";
 
-            if (PoiSettingsMyLocationRadioButton.IsChecked == true)
+            if (selectedLocation.Id == 0)
             {
                 // текущее местоположение пользователя (координаты будут определены на MainPage)
                 PhoneApplicationService.Current.State["location"] = "me";
             }
-            else if (PoiSettingsSearchMarkerRadioButton.IsChecked == true)
+            else if (selectedLocation.Id == 1)
             {
                 // маркер поиска на карте (координаты будут определены на MainPage)
                 PhoneApplicationService.Current.State["location"] = "marker";
             }
-            else
+            else if (selectedLocation.Id == 2)
             {
                 // координаты будут записаны в состояние приложения для того, чтобы их можно было извлечь на MainPage
                 PhoneApplicationService.Current.State["location"] = "search";
@@ -130,7 +212,7 @@ namespace RouteGuide.Pages
             PhoneApplicationService.Current.State["markerKind"] = (int)selectedPoiKind;
 
             PhoneApplicationService.Current.State["poiName"] = selectedPoiName;
-            PhoneApplicationService.Current.State["poiDescription"] = selectedPoiDescription;            
+            PhoneApplicationService.Current.State["poiDescription"] = selectedPoiDescription;
 
             PhoneApplicationService.Current.State["poiComment"] = selectedPoiComment;
 
@@ -138,41 +220,31 @@ namespace RouteGuide.Pages
         }
 
         /*
-         * Событие нажатия на кнопку выбора метки
+         * Событие нажатия на кнопку выбора POI
          */
         private void PoiSettingsButton_Click(object sender, RoutedEventArgs e)
         {
+            _isGoForward = true;
             NavigationService.Navigate(new Uri("/Pages/PoiSelectionPage.xaml", UriKind.RelativeOrAbsolute));
         }
 
         /*
-         * События выбора в качестве локации размещения POI текущего местоположения пользователя
+         * Событие выбора одного из item'ов списка
          */
-        private void PoiSettingsSelectMyLocationButton_Click(object sender, RoutedEventArgs e)
+        private void SelectPoiLocationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            PoiSettingsMyLocationRadioButton.IsChecked = true;
-            PoiSettingsSearchMarkerRadioButton.IsChecked = false;
-            PoiSettingsSearchRadioButton.IsChecked = false;
-        }
+            LongListSelector list = sender as LongListSelector;
 
-        /*
-         * События выбора в качестве лдокации размещения POI отмеченного на карте маркером поиска объекта
-         */
-        private void PoiSettingsSelectSearchMarkerButton_Click(object sender, RoutedEventArgs e)
-        {
-            PoiSettingsMyLocationRadioButton.IsChecked = false;
-            PoiSettingsSearchMarkerRadioButton.IsChecked = true;
-            PoiSettingsSearchRadioButton.IsChecked = false;
-        }
+            if (list == null)
+                return;
 
-        /*
-         * События выбора в качестве локации размещения POI места, которое будет найдено с помощью поиска
-         */
-        private void PoiSettingsSelectSearchLocation_Click(object sender, RoutedEventArgs e)
-        {
-            PoiSettingsMyLocationRadioButton.IsChecked = false;
-            PoiSettingsSearchMarkerRadioButton.IsChecked = false;
-            PoiSettingsSearchRadioButton.IsChecked = true;
+            PoiLocationSettingsItem data = list.SelectedItem as PoiLocationSettingsItem;
+
+            if (data == null)
+                return;
+
+            DataContext = null;
+            DataContext = UpdateCheckingModelItems(data, markerSearchLocationContent);
         }
 
         /*
@@ -220,6 +292,40 @@ namespace RouteGuide.Pages
                 // удаляем пару с ключом type из состояния приложения
                 PhoneApplicationService.Current.State.Remove("type");
             }
+
+            // Проверяем, посылались ди данные с MainPage
+            if (PhoneApplicationService.Current.State.ContainsKey("markerTransmitting"))
+            {
+                if ((bool)PhoneApplicationService.Current.State["markerTransmitting"])
+                {
+                    string street = string.Empty;
+                    if (NavigationContext.QueryString.TryGetValue("street", out street))
+                        markerSearchLocationContent += street + " ";
+                    string houseNumber = string.Empty;
+                    if (NavigationContext.QueryString.TryGetValue("houseNumber", out houseNumber))
+                        markerSearchLocationContent += houseNumber + " ";
+                    string city = string.Empty;
+                    if (NavigationContext.QueryString.TryGetValue("city", out city))
+                        markerSearchLocationContent += city + " ";
+                    string county = string.Empty;
+                    if (NavigationContext.QueryString.TryGetValue("county", out county))
+                        markerSearchLocationContent += county;
+                }
+                PhoneApplicationService.Current.State.Remove("markerTransmitting");
+            }
+
+            DataContext = null;
+            DataContext = LoadPoiLocationData(markerSearchLocationContent);
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+
+            // Если уходим на предыдущую страницу, то сбрасываем модель
+            if (!_isGoForward)
+                ResetModel();
+            _isGoForward = false;
         }
     }
 }

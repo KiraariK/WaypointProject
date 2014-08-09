@@ -6,6 +6,7 @@
     xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignData ../SampleData/PoiLocationSettingsSampleData.xaml}"
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="{StaticResource PhoneForegroundBrush}"
@@ -16,6 +17,7 @@
     <!--LayoutRoot представляет корневую сетку, где размещается все содержимое страницы-->
     <Grid x:Name="LayoutRoot" Background="Transparent">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -81,90 +83,48 @@
                 
                 <TextBox x:Name="PoiSettingsCommentTextBox" 
                          Margin="0, 0, 0, 0"/>
-                
-                <!-- Область выбора места размещения маркера POI -->
-                <Button x:Name="PoiSettingsSelectMyLocationButton"
-                        BorderThickness="0"
-                        HorizontalAlignment="Left"
-                        Click="PoiSettingsSelectMyLocationButton_Click"
-                        Margin="-12, 0, 0, 0">
-                    
-                <Grid x:Name="PoiSettingsSelectMyLocation"
-                      Margin="0, -12, 0, -12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    
-                    <RadioButton x:Name="PoiSettingsMyLocationRadioButton"
-                                 Grid.Column="0"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"
-                                 IsChecked="true"/>
-                    <TextBlock x:Name="PoiSettingsMyLocationTextBlock"
-                               Grid.Column="1"
-                               Style="{StaticResource PhoneTextLargeStyle}"
-                               Text="{Binding Path=LocalizedResources.PoiSettingsMyLocation, Source={StaticResource LocalizedStrings}}"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"/>
-                </Grid>
-                </Button>
-
-                <Button x:Name="PoiSettingsSelectSearchMarkerButton"
-                        BorderThickness="0"
-                        HorizontalAlignment="Left"
-                        Click="PoiSettingsSelectSearchMarkerButton_Click"
-                        Margin="-12, 0, 0, 0">
-                    
-                <Grid x:Name="PoiSettingsSelectSearchMarkerLocation"
-                      Margin="0, -12, 0, -12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <RadioButton x:Name="PoiSettingsSearchMarkerRadioButton"
-                                 Grid.Column="0"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"/>
-
-                    <TextBlock x:Name="PoiSettingsSearchMarkerTextBlock"
-                               Grid.Column="1"
-                               Style="{StaticResource PhoneTextLargeStyle}"
-                               Text="{Binding Path=LocalizedResources.PoiSettingsMarkerSearchLocation, Source={StaticResource LocalizedStrings}}"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"/>
-                </Grid>
-                </Button>
-
-                <Button x:Name="PoiSettingsSelectSearchLocation"
-                        BorderThickness="0"
-                        HorizontalAlignment="Left"
-                        Click="PoiSettingsSelectSearchLocation_Click"
-                        Margin="-12, 0, 0, 0">
-                    
-                    <Grid x:Name="PoiSettingsSearchLocation"
-                          Margin="0, -12, 0, -12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <RadioButton x:Name="PoiSettingsSearchRadioButton"
-                                 Grid.Column="0"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"/>
-                    <TextBlock x:Name="PoiSettingsSearchTextBlock"
-                               Grid.Column="1"
-                               Style="{StaticResource PhoneTextLargeStyle}"
-                               Text="{Binding Path=LocalizedResources.PoiSettingsSearchLocation, Source={StaticResource LocalizedStrings}}"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"/>
-                    </Grid>
-                </Button>
-                
             </StackPanel>
         </Grid>
+
+        <!-- Область выбора места размещения маркера POI -->
+        <Grid Margin="12, 0, 12, 0" Grid.Row="2">
+            <phone:LongListSelector x:Name="SelectPoiLocationList" ItemsSource="{Binding Items}" SelectionChanged="SelectPoiLocationList_SelectionChanged">
+                <phone:LongListSelector.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="12, 8, 0, 8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="6*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid Name="SelectIndicator" Grid.Column="0">
+                                <Ellipse Name="EllipseExternal"
+                                         Fill="{StaticResource PhoneForegroundBrush}"
+                                         Width="45"
+                                         Height="45"
+                                         IsHitTestVisible="False"/>
+                                <Ellipse Name="EllipseMiddle"
+                                         Fill="{StaticResource PhoneBackgroundBrush}"
+                                         Width="35"
+                                         Height="35"/>
+                                <Ellipse Name="EllipseInternal"
+                                         Fill="{StaticResource PhoneForegroundBrush}"
+                                         Width="20"
+                                         Height="20"
+                                         Visibility="{Binding IsChecked}"/>
+                            </Grid>
+                            <TextBlock x:Name="LocationItemTextBlock"
+                                       Style="{StaticResource PhoneTextTitle3Style}"
+                                       Text="{Binding Content}"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Grid.Column="1"/>
+                        </Grid>
+                    </DataTemplate>
+                </phone:LongListSelector.ItemTemplate>
+            </phone:LongListSelector>
+        </Grid>
+
     </Grid>
 
 </phone:PhoneApplicationPage>

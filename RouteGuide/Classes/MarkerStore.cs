@@ -12,7 +12,7 @@ namespace RouteGuide.Classes
         private static string myMarkerPath = "/Assets/Markers/Me.png";
         private static string homeMarkerPath = "";
         private static string workMarkerPath = "";
-        private static string searchMarkerPath = "";
+        private static string searchMarkerPath = "/Assets/Markers/Search.png";
         private static string locationMarkerPath = "";
         private static string destinationMarkerPath = "";
         private static string waypointMarkerPath = "";

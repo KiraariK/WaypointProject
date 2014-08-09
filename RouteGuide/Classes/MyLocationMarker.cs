@@ -12,7 +12,10 @@ namespace RouteGuide.Classes
     public class MyLocationMarker : Marker
     {
         private static MyLocationMarker _instance = null;
-        protected MyLocationMarker() { }
+        protected MyLocationMarker() 
+        {
+            Kind = MarkerKind.Me;
+        }
         public static MyLocationMarker Instance()
         {
             if (_instance == null)

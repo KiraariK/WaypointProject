@@ -120,6 +120,8 @@
     </Compile>
     <Compile Include="ViewModels\AuthenticationItem.cs" />
     <Compile Include="ViewModels\AuthenticationModel.cs" />
+    <Compile Include="ViewModels\PoiLocationSettingsItem.cs" />
+    <Compile Include="ViewModels\PoiLocationSettingsModel.cs" />
     <Compile Include="ViewModels\PoiSelectionItem.cs" />
     <Compile Include="ViewModels\PoiSelectionModel.cs" />
   </ItemGroup>
@@ -145,6 +147,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SampleData\AuthenticationSampleData.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SampleData\PoiLocationSettingsSampleData.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -179,6 +185,7 @@
     <Content Include="Assets\Logos\Twitter_logo.png" />
     <Content Include="Assets\Logos\VK_logo.png" />
     <Content Include="Assets\Markers\Me.png" />
+    <Content Include="Assets\Markers\Search.png" />
     <Content Include="Assets\PoiIcons\BadRoad.png" />
     <Content Include="Assets\PoiIcons\Camera.png" />
     <Content Include="Assets\PoiIcons\Chat.png" />

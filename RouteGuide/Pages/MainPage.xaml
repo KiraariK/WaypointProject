@@ -26,11 +26,15 @@
         <Grid x:Name="ContentPanel" Grid.Row="0" >
             <maps:Map x:Name="RouteGuideMap"
                       ZoomLevelChanged="RouteGuideMap_ZoomLevelChanged"/>
+            <StackPanel x:Name="SearchStaskPanel"
+                        Background="{StaticResource PhoneBackgroundBrush}"
+                        Visibility="Collapsed"
+                        Height="70"
+                        VerticalAlignment="Top">
             <TextBox x:Name="SearchTextBox"
                      VerticalAlignment="Top"
-                     Visibility="Collapsed"
-                     HorizontalAlignment="Stretch"
-                     LostFocus="SearchTextBox_LostFocus"/>
+                     HorizontalAlignment="Stretch"/>
+            </StackPanel>
         </Grid>
 
         <!-- Здесь располагается панель информации о построенном маршруте -->
