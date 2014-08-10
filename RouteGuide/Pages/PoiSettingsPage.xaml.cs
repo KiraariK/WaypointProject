@@ -12,6 +12,8 @@ using RouteGuide.Classes;
 using System.Windows.Media.Imaging;
 
 using RouteGuide.ViewModels;
+using System.Windows.Shapes;
+using System.Windows.Media;
 
 namespace RouteGuide.Pages
 {
@@ -26,9 +28,6 @@ namespace RouteGuide.Pages
         private double selectedPoiMarkerLongitude;
 
         private string markerSearchLocationContent = string.Empty;
-
-        // Показывает, происходит ли переход с данной страницы вперед
-        private bool _isGoForward = false;
 
         private static PoiLocationSettingsModel poilocationModel = null;
 
@@ -224,7 +223,6 @@ namespace RouteGuide.Pages
          */
         private void PoiSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            _isGoForward = true;
             NavigationService.Navigate(new Uri("/Pages/PoiSelectionPage.xaml", UriKind.RelativeOrAbsolute));
         }
 
@@ -314,6 +312,7 @@ namespace RouteGuide.Pages
                 PhoneApplicationService.Current.State.Remove("markerTransmitting");
             }
 
+            // Всегда перезагружаем модель
             DataContext = null;
             DataContext = LoadPoiLocationData(markerSearchLocationContent);
         }
@@ -322,10 +321,9 @@ namespace RouteGuide.Pages
         {
             base.OnNavigatedFrom(e);
 
-            // Если уходим на предыдущую страницу, то сбрасываем модель
-            if (!_isGoForward)
+            // Если уходим на MainPage, то сбрасываем модель
+            if (NavigationService.Source.ToString().Equals("/Pages/MainPage.xaml"))
                 ResetModel();
-            _isGoForward = false;
         }
     }
 }
