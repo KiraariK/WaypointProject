@@ -124,6 +124,8 @@
     <Compile Include="ViewModels\PoiLocationSettingsModel.cs" />
     <Compile Include="ViewModels\PoiSelectionItem.cs" />
     <Compile Include="ViewModels\PoiSelectionModel.cs" />
+    <Compile Include="ViewModels\SearchResultsItem.cs" />
+    <Compile Include="ViewModels\SearchResultsModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -155,6 +157,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SampleData\PoiSelectionSampleData.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SampleData\SearchResultsSampleData.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:maps="clr-namespace:Microsoft.Phone.Maps.Controls;assembly=Microsoft.Phone.Maps"
+    d:DataContext="{d:DesignData ../SampleData/SearchResultsSampleData.xaml}"
     mc:Ignorable="d"
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
@@ -33,8 +34,33 @@
                         VerticalAlignment="Top">
             <TextBox x:Name="SearchTextBox"
                      VerticalAlignment="Top"
-                     HorizontalAlignment="Stretch"/>
+                     HorizontalAlignment="Stretch"
+                     TextChanged="SearchTextBox_TextChanged"/>
             </StackPanel>
+            <Grid x:Name="SearchResultsGrid" Margin="13, 60, 14, 0"
+                  VerticalAlignment="Top"
+                  MaxHeight="250"
+                  Background="{StaticResource PhoneForegroundBrush}"
+                  Visibility="Collapsed">
+                <phone:LongListSelector x:Name="SearchResultsList"
+                                        ItemsSource="{Binding Items}"
+                                        SelectionChanged="SearchResultsList_SelectionChanged">
+                    <phone:LongListSelector.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Background="{StaticResource PhoneBackgroundBrush}">
+                                <Grid Background="{StaticResource PhoneForegroundBrush}"
+                                      Margin="0, 1, 0, 0">
+                                    <TextBlock Text="{Binding Address}"
+                                       TextWrapping="Wrap"
+                                       FontSize="28"
+                                       Foreground="{StaticResource PhoneBackgroundBrush}"
+                                               Margin="6, 0, 6, 0"/>
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </phone:LongListSelector.ItemTemplate>
+                </phone:LongListSelector>
+            </Grid>
         </Grid>
 
         <!-- Здесь располагается панель информации о построенном маршруте -->

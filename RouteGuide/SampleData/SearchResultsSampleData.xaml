@@ -1,0 +1,16 @@
+﻿<vm:SearchResultsModel
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:RouteGuide.ViewModels">
+    
+    <vm:SearchResultsModel.Items>
+        <vm:SearchResultsItem Address="улица Усова 23 Томск Томская область"
+                              ItemId="0"/>
+        <vm:SearchResultsItem Address="улица Вершинина 46 Томск Томская область"
+                              ItemId="1"/>
+        <vm:SearchResultsItem Address="улица Ленина 30 Томск Томская область"
+                              ItemId="2"/>
+        
+    </vm:SearchResultsModel.Items>
+    
+</vm:SearchResultsModel>

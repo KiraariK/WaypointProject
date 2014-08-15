@@ -12,11 +12,13 @@ using Microsoft.Phone.Maps.Controls;
 using Microsoft.Phone.Maps.Services;
 using RouteGuide.Resources;
 using Windows.Devices.Geolocation;
-
-using RouteGuide.Classes;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using System.Windows.Threading;
+
+using RouteGuide.Classes;
+using RouteGuide.ViewModels;
 
 namespace RouteGuide
 {
@@ -28,7 +30,7 @@ namespace RouteGuide
          */
         /*
          * Реализация маркеров: отображение отделено от логики. Отображение (картинка маркера на карте)
-         * содержит только ссылку (индекс списка) на информацию о маркере.
+         * содержит только ссылку (индекс списка) на информацию о маркере - списки маркеров, представленные ниже.
          */
 
         // Список особых меток на карте (слой карты = 0)
@@ -55,8 +57,16 @@ namespace RouteGuide
         // Флаг, показывающий, происходит ли поиск маршрута
         private bool _isRouteSearch = false;
 
-        // Флаг, определяющий показан ли диалог поиска
-        private bool _searchInProgress = false;
+        // Флаг, показывающий, хочет ли пользователь увидеть все найденные результаты
+        private bool _isSearchAll = false;
+
+        // Поле, хранящей последнюю введенную пользователем фразу поиска
+        private string lastSearchPhrase = string.Empty;
+
+        // Таймер, отсчитывающий время после последнего ввода информации в поле поиска
+        private DispatcherTimer searchLatencyTimer = null;
+
+        private static SearchResultsModel searchresultViewModel = null;
 
         // Конструктор
         public MainPage()
@@ -64,6 +74,8 @@ namespace RouteGuide
             InitializeComponent();
 
             Loaded += MainPage_Loaded;
+
+            CreateSearchTimer();
 
             CreateMainApplicationBar();
         }
@@ -74,6 +86,42 @@ namespace RouteGuide
                 SystemTray.ProgressIndicator = new ProgressIndicator();
 
             LoadMapMarkers();
+        }
+
+        private void CreateSearchTimer()
+        {
+            searchLatencyTimer = new DispatcherTimer();
+            searchLatencyTimer.Interval = new TimeSpan(0, 0, 0, 1, 0);
+            searchLatencyTimer.Tick += searchLatencyTimer_Tick;
+        }
+
+        /*
+         * функция производит загрузку данных модели для отображения результатов поиска.
+         * функция использует данные списка маркеров поиска.
+         */
+        private object LoadSearchResultData()
+        {
+            if (searchMapMarkers == null)
+                return null;
+
+            if (searchMapMarkers.Count == 0)
+                return null;
+
+            if (searchresultViewModel == null)
+                searchresultViewModel = new SearchResultsModel();
+
+            List<string> results = new List<string>();
+            for (int i = 0; i < searchMapMarkers.Count; i++)
+            {
+                results.Add(searchMapMarkers[i].Address.Street + " " +
+                    searchMapMarkers[i].Address.HouseNumber + " " +
+                    searchMapMarkers[i].Address.City + " " +
+                    searchMapMarkers[i].Address.County);
+            }
+
+            searchresultViewModel = new SearchResultsModel();
+            searchresultViewModel.LoadData(results);
+            return searchresultViewModel;
         }
 
         /*
@@ -440,27 +488,40 @@ namespace RouteGuide
          * функция устанавливает видимость элементов управления на экране при использовании кнопки поиска
          * на основном Application Bar.
          */
-        private void SetSearchTextBoxVisibility(bool isVisible)
+        private void SetSearchTextBoxVisibility(bool IsVisible)
         {
-            if (isVisible)
+            if (IsVisible)
             {
-                RouteGuideMap.IsEnabled = !isVisible;
+                RouteGuideMap.IsEnabled = !IsVisible;
 
                 SearchTextBox.SelectAll();
                 SearchStaskPanel.Visibility = Visibility.Visible;
                 SearchTextBox.Focus();
 
-                _searchInProgress = true;
                 CreateDialogApplicationBar();
             }
             else
             {
-                RouteGuideMap.IsEnabled = !isVisible;
+                RouteGuideMap.IsEnabled = !IsVisible;
 
                 SearchStaskPanel.Visibility = Visibility.Collapsed;
 
-                _searchInProgress = false;
                 CreateMainApplicationBar();
+            }
+        }
+
+        /*
+         * функция устанавливает видимость списка результатов поиска
+         */
+        private void SetSearchResultsListVisibility(bool IsVisible)
+        {
+            if (IsVisible)
+            {
+                SearchResultsGrid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                SearchResultsGrid.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -508,27 +569,55 @@ namespace RouteGuide
                             searchMarker.Address = e.Result[i].Information.Address;
                             searchMapMarkers.Add(searchMarker);
                         }
-                        DrawSearchMarkers(RouteGuideMap.Layers[3]);
+
+                        // загрузка данных модели для отображения результатов поиска
+                        if (!_isSearchAll)
+                        {
+                            DataContext = LoadSearchResultData();
+                            SetSearchResultsListVisibility(true);
+                        }
+                        else
+                            DrawSearchMarkers(RouteGuideMap.Layers[3]);
+
+                        _isSearchAll = false;
                     }
                 }
                 else
                 {
-                    MessageBox.Show(AppResources.MainPageSearchNotFoundMessage);
+                    // очищаем DataContext и скрываем список результатов поиска
+                    DataContext = null;
+                    SetSearchResultsListVisibility(false);
+
+                    //MessageBox.Show(AppResources.MainPageSearchNotFoundMessage);
                 }
 
                 searchQuery.Dispose();
             }
         }
 
-        private void DrawSearchMarkers(MapLayer mapLayer)
+        /*
+         * функция дляотрисовки маркеров поиска на карте.
+         * Если задан параметр index, то необходимо отобразить только один маркер с указанным индексом.
+         */
+        private void DrawSearchMarkers(MapLayer mapLayer, int index = -1)
         {
             if (searchMapMarkers != null)
             {
                 mapLayer.Clear();
 
-                for (int i = 0; i < searchMapMarkers.Count; i++)
+                if (index != -1)
                 {
-                    DrawMapMarker(searchMapMarkers[i].Coordinate, searchMapMarkers[i].Kind, mapLayer, i);
+                    DrawMapMarker(searchMapMarkers[index].Coordinate, searchMapMarkers[index].Kind, mapLayer, index);
+                    RouteGuideMap.SetView(searchMapMarkers[index].Coordinate, RouteGuideMap.ZoomLevel, MapAnimationKind.Parabolic);
+                }
+                else
+                {
+
+                    for (int i = 0; i < searchMapMarkers.Count; i++)
+                    {
+                        DrawMapMarker(searchMapMarkers[i].Coordinate, searchMapMarkers[i].Kind, mapLayer, i);
+                    }
+                    RouteGuideMap.SetView(searchMapMarkers[0].Coordinate, RouteGuideMap.ZoomLevel, MapAnimationKind.Parabolic);
                 }
             }
         }
@@ -635,14 +724,92 @@ namespace RouteGuide
             // обработка строки, введенной в SearchTextBox
             if (!SearchTextBox.Text.Equals(string.Empty))
             {
+                _isSearchAll = true;
                 SearchForTerm(SearchTextBox.Text);
             }
 
+            DataContext = null;
+            SetSearchResultsListVisibility(false);
             SetSearchTextBoxVisibility(false);
         }
 
         void appBarCancelButton_Click(object sender, EventArgs e)
         {
+            DataContext = null;
+            SetSearchResultsListVisibility(false);
+            SetSearchTextBoxVisibility(false);
+        }
+
+        /*
+         * События с элементами управления, связанными с функцией поиска
+         */
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (SearchTextBox.Text.Equals(string.Empty))
+            {
+                lastSearchPhrase = string.Empty;
+
+                // скрываем список найденных объектов
+                DataContext = null;
+                SetSearchResultsListVisibility(false);
+
+                return;
+            }
+
+            // останавливаем и заново запускаем таймер
+            searchLatencyTimer.Stop();
+            searchLatencyTimer.Start();
+        }
+
+        /*
+         * Событие, возникающее при задержке ввода символов в поле поиска
+         */
+        void searchLatencyTimer_Tick(object sender, EventArgs e)
+        {
+            searchLatencyTimer.Stop();
+
+            if (SearchTextBox.Text.Equals(string.Empty))
+            {
+                lastSearchPhrase = string.Empty;
+
+                // скрываем список найденных объектов
+                DataContext = null;
+                SetSearchResultsListVisibility(false);
+
+                return;
+            }
+
+            // ничего не делаем, если фраза после изменения эквивалентна фразе до изменения
+            if (SearchTextBox.Text.ToLower().Equals(lastSearchPhrase.ToLower()))
+                return;
+
+            // запуск поиска
+            lastSearchPhrase = SearchTextBox.Text;
+            SearchForTerm(SearchTextBox.Text);
+        }
+
+        /*
+         * Событие изменения выбранного item'а в списке результатов поиска
+         */
+        private void SearchResultsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LongListSelector list = sender as LongListSelector;
+
+            if (list == null)
+                return;
+
+            SearchResultsItem selectedItem = list.SelectedItem as SearchResultsItem;
+
+            if (selectedItem == null)
+                return;
+
+            // определяем по ItemId какой маркер из списка маркеров нужно отобразить
+            DrawSearchMarkers(RouteGuideMap.Layers[3], selectedItem.ItemId);
+
+            // скрываем всю панель поиска
+            selectedItem = null;
+            DataContext = null;
+            SetSearchResultsListVisibility(false);
             SetSearchTextBoxVisibility(false);
         }
 
