@@ -91,7 +91,7 @@ namespace RouteGuide
         private void CreateSearchTimer()
         {
             searchLatencyTimer = new DispatcherTimer();
-            searchLatencyTimer.Interval = new TimeSpan(0, 0, 0, 1, 0);
+            searchLatencyTimer.Interval = new TimeSpan(0, 0, 0, 1, 300);
             searchLatencyTimer.Tick += searchLatencyTimer_Tick;
         }
 
@@ -812,7 +812,6 @@ namespace RouteGuide
             SetSearchResultsListVisibility(false);
             SetSearchTextBoxVisibility(false);
         }
-
 
         /*
          * События выбора одного из пунктов меню основного Application Bar
